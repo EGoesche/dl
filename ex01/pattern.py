@@ -72,20 +72,15 @@ class Spectrum:
         self.resolution = resolution
 
     def draw(self):
-        x = np.ones((self.resolution, self.resolution, 3))
-        x[:, :, 0:3] = np.random.uniform(0, 1, (3,))
-        plt.imshow(x)
-        plt.figure()
+        x = np.zeros((self.resolution, self.resolution, 3))
 
-        y = np.ones((self.resolution, self.resolution, 3))
-        y[:, :, 0:3] = np.random.uniform(0, 1, (3,))
-        plt.imshow(y)
+        x[:, :, 0] = np.linspace(0, 1, self.resolution)  #No Red to Full Red
 
-        plt.figure()
-        c = np.linspace(0, 1, self.resolution)[:, None, None]
-        gradient = x + (y - x) * c
-        self.output = gradient
-        return self.output
+        x[:, :, 1] = np.linspace(0, 1, self.resolution).reshape(self.resolution, 1)  #No Green to Full Green
+
+        x[:, :, 2] = np.linspace(1, 0, self.resolution)  #Full Blue to No Blue
+        self.output = x
+        return self.output.copy()
 
     def show(self):
         """
