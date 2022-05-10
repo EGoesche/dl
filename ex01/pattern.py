@@ -49,13 +49,21 @@ class Circle:
         Draws a circle.
         :return: numpy.ndarray
         """
-        x = np.linspace(-10, 10, 491)
-        y = np.linspace(-10, 10, 491)
+        x = np.linspace(0, self.resolution, self.resolution)
+        y = np.linspace(0, self.resolution, self.resolution)
         x, y = np.meshgrid(x, y)
-        mask = np.sqrt((x - self.position[0]) ** 2 + (y - self.position[1]) ** 2)
-        mask = np.where(mask > self.radius, 0, 1)
+        mask = np.sqrt((x-self.position[0])**2+(y-self.position[1])**2)
+        for x in range(0, self.resolution):
+            for y in range(0, self.resolution):
+                if mask[x, y] > self.radius:
+                    mask[x, y] = 0
+                elif mask[x, y] <= self.radius:
+                    mask[x, y] = 256
+
+        #mask = np.where(mask > self.radius, 0, 1)
+
         self.output = mask
-        return self.output
+        return self.output.copy()
 
     def show(self):
         """
