@@ -25,7 +25,7 @@ class Checker:
                                                                                               self.resolution))
         row_overlap = (row + row.T)
         self.output = np.where(row_overlap == 1, 1, 0)
-        return self.output
+        return self.output.copy()
 
     def show(self):
         """
