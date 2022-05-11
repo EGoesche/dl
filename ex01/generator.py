@@ -17,10 +17,16 @@ class ImageGenerator:
         # Also depending on the size of your data-set you can consider loading all images into memory here already.
         # The labels are stored in json format and can be directly loaded as dictionary.
         # Note that the file names correspond to the dicts of the label dictionary.
+        self.file_path = file_path
+        self.label_path = label_path
+        self.batch_size = batch_size
+        self.image_size = image_size
+        self.rotation = rotation
+        self.mirroring = mirroring
+        self.shuffle = shuffle
 
         self.class_dict = {0: 'airplane', 1: 'automobile', 2: 'bird', 3: 'cat', 4: 'deer', 5: 'dog', 6: 'frog',
                            7: 'horse', 8: 'ship', 9: 'truck'}
-        #TODO: implement constructor
 
     def next(self):
         # This function creates a batch of images and corresponding labels and returns them.
