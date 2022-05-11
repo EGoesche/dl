@@ -56,24 +56,13 @@ class ImageGenerator:
 
                 # Open image, resize and append it to the images list
                 image = np.load(os.path.join(self.file_path, str(x + offset) + '.npy'))
-                augmented_image = resize(image, self.image_size[0], self.image_size[1])
+                image = resize(image, self.image_size[0], self.image_size[1])
 
-                # Mirror image if flag is set and the random bit is true
-                if self.mirroring and bool(random.getrandbits(1)):
-                    augmented_image = np.fliplr(augmented_image)
-
-                # Rotate image if flag is set and the random bit is true
-                if self.rotation and bool(random.getrandbits(1)):
-                    # Randomly choose the angle to rotate
-                    angle = random.choice([90, 180, 270])
-                    augmented_image = rotate(augmented_image, angle)
-
-                images.append(augmented_image)
+                images.append(self.augment(image))
                 labels.append(label_data.get(str(x)))
                 x += 1
 
-
-        #TODO: implement next method
+        #TODO: implement next method with shuffle flag
 
         self.batch_index += 1
         return images, labels
@@ -81,7 +70,13 @@ class ImageGenerator:
     def augment(self, img):
         # this function takes a single image as an input and performs a random transformation
         # (mirroring and/or rotation) on it and outputs the transformed image
-        #TODO: implement augmentation function
+        if self.mirroring and bool(random.getrandbits(1)):
+            img = np.fliplr(img)
+
+        if self.rotation and bool(random.getrandbits(1)):
+            # Randomly choose the angle to rotate
+            angle = random.choice([90, 180, 270])
+            img = rotate(img, angle)
 
         return img
 
