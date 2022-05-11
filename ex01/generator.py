@@ -96,5 +96,4 @@ class ImageGenerator:
     def show(self):
         # In order to verify that the generator creates batches as required, this functions calls next to get a
         # batch of images and labels and visualizes it.
-        #TODO: implement show method
-
+        images, labels = self.next()
