@@ -6,8 +6,11 @@ import random
 import matplotlib.pyplot as plt
 from skimage.transform import resize, rotate
 
-# In this exercise task you will implement an image generator. Generator objects in python are defined as having a next function.
-# This next function returns the next generated object. In our case it returns the input of a neural network each time it gets called.
+
+# In this exercise task you will implement an image generator. Generator objects in python are defined as having a next
+# function.
+# This next function returns the next generated object. In our case it returns the input of a neural network each time
+# it gets called.
 # This input consists of a batch of images and its corresponding labels.
 class ImageGenerator:
     batch_index = 0
@@ -47,9 +50,11 @@ class ImageGenerator:
             x = 0
             while x < self.batch_size:
                 # If more data is needed than available, reset batch_index and thus offset to start again from beginning
+                # In that case also update the current_epoch
                 if x + offset >= len([entry for entry in os.listdir(self.file_path) if
-                                     os.path.isfile(os.path.join(self.file_path, entry))]):
+                                      os.path.isfile(os.path.join(self.file_path, entry))]):
                     self.batch_index, offset = 0
+                    self.current_epoch += 1
                     x = 0
                     # Reset the loop
                     continue
@@ -62,7 +67,7 @@ class ImageGenerator:
                 labels.append(label_data.get(str(x)))
                 x += 1
 
-        #TODO: implement next method with shuffle flag
+        # TODO: implement next method with shuffle flag
 
         self.batch_index += 1
         return images, labels
@@ -86,8 +91,7 @@ class ImageGenerator:
 
     def class_name(self, x):
         # This function returns the class name for a specific input
-        #TODO: implement class name function
-        return
+        return self.class_dict.get(x)
 
     def show(self):
         # In order to verify that the generator creates batches as required, this functions calls next to get a
