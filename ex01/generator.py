@@ -41,7 +41,8 @@ class ImageGenerator:
         # In this context a "batch" of images just means a bunch, say 10 images that are forwarded at once.
         # Note that your amount of total data might not be divisible without remainder with the batch_size.
         # Think about how to handle such cases
-        images, labels = []
+        images = []
+        labels = []
         offset = self.batch_index * self.batch_size
         with open(self.label_path, "r") as read_json:
             label_data = json.load(read_json)
@@ -53,7 +54,8 @@ class ImageGenerator:
                 # In that case also update the current_epoch
                 if x + offset >= len([entry for entry in os.listdir(self.file_path) if
                                       os.path.isfile(os.path.join(self.file_path, entry))]):
-                    self.batch_index, offset = 0
+                    self.batch_index = 0
+                    offset = 0
                     self.current_epoch += 1
                     x = 0
                     # Reset the loop
@@ -61,7 +63,7 @@ class ImageGenerator:
 
                 # Open image, resize and append it to the images list
                 image = np.load(os.path.join(self.file_path, str(x + offset) + '.npy'))
-                image = resize(image, self.image_size[0], self.image_size[1])
+                image = resize(image, (self.image_size[0], self.image_size[1]))
 
                 images.append(self.augment(image))
                 labels.append(label_data.get(str(x)))
@@ -97,3 +99,12 @@ class ImageGenerator:
         # In order to verify that the generator creates batches as required, this functions calls next to get a
         # batch of images and labels and visualizes it.
         images, labels = self.next()
+        plt.figure(figsize=(10, 10))
+        for i in range(self.batch_size):
+            plt.subplot(5, 5, i + 1)
+            plt.xticks([])
+            plt.yticks([])
+            plt.grid(False)
+            plt.imshow(images[i])
+            plt.xlabel(self.class_name(labels[i]))
+        plt.show()
