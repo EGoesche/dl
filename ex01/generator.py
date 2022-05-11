@@ -13,7 +13,8 @@ from skimage.transform import resize, rotate
 # it gets called.
 # This input consists of a batch of images and its corresponding labels.
 class ImageGenerator:
-    batch_index = 0
+    batch_index = 0         # Counts how many batches are created so far
+    images_in_batch = 0     # Counts how many images are already in the current batch
 
     def __init__(self, file_path, label_path, batch_size, image_size, rotation=False, mirroring=False, shuffle=False):
         # Define all members of your generator class object as global members here.
@@ -44,14 +45,17 @@ class ImageGenerator:
         images = []
         labels = []
         offset = self.batch_index * self.batch_size
+        self.images_in_batch = 0    # Reset this variable to mind conflicts with earlier created batches
         with open(self.label_path, "r") as read_json:
             label_data = json.load(read_json)
 
         if not self.shuffle:
             x = 0
-            while x < self.batch_size:
+            while x < self.batch_size and self.images_in_batch < self.batch_size:
                 # If more data is needed than available, reset batch_index and thus offset to start again from beginning
                 # In that case also update the current_epoch
+                y = len([entry for entry in os.listdir(self.file_path) if
+                        os.path.isfile(os.path.join(self.file_path, entry))])
                 if x + offset >= len([entry for entry in os.listdir(self.file_path) if
                                       os.path.isfile(os.path.join(self.file_path, entry))]):
                     self.batch_index = 0
@@ -67,6 +71,7 @@ class ImageGenerator:
 
                 images.append(self.augment(image))
                 labels.append(label_data.get(str(x)))
+                self.images_in_batch += 1
                 x += 1
 
         # TODO: implement next method with shuffle flag
@@ -108,3 +113,4 @@ class ImageGenerator:
             plt.imshow(images[i])
             plt.xlabel(self.class_name(labels[i]))
         plt.show()
+
