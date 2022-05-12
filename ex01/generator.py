@@ -14,7 +14,7 @@ from skimage.transform import resize, rotate
 # This input consists of a batch of images and its corresponding labels.
 class ImageGenerator:
     batch_index = 0         # Counts how many batches are created so far
-    images_in_batch = 0     # Counts how many images are already in the current batch
+    #images_in_batch = 0     # Counts how many images are already in the current batch
 
     def __init__(self, file_path, label_path, batch_size, image_size, rotation=False, mirroring=False, shuffle=False):
         # Define all members of your generator class object as global members here.
@@ -33,9 +33,32 @@ class ImageGenerator:
         self.mirroring = mirroring
         self.shuffle = shuffle
         self.epoch = 0
+        self.images = []
+        self.labels = []
+        self.dataset_population = len([entry for entry in os.listdir(self.file_path) if
+                 os.path.isfile(os.path.join(self.file_path, entry))])
 
         self.class_dict = {0: 'airplane', 1: 'automobile', 2: 'bird', 3: 'cat', 4: 'deer', 5: 'dog', 6: 'frog',
                            7: 'horse', 8: 'ship', 9: 'truck'}
+
+
+        with open(self.label_path, "r") as read_json:
+            label_data = json.load(read_json)
+
+        # Read all images at once, for once.
+        x = 0
+        while x < self.dataset_population:
+            # Open image, resize and append it to the images list
+            image = np.load(os.path.join(self.file_path, str(x) + '.npy'))
+            image = resize(image, (self.image_size[0], self.image_size[1]))
+
+            self.images.append(self.augment(image))
+            self.labels.append(label_data.get(str(x)))
+            x += 1
+
+        #Initial shuffle. Even before batching, shuffle the whole dataset
+        if self.shuffle:
+            self.shuffle_two_lists()
 
     def next(self):
         # This function creates a batch of images and corresponding labels and returns them.
@@ -44,45 +67,28 @@ class ImageGenerator:
         # Think about how to handle such cases
         images = []
         labels = []
-        offset = self.batch_index * self.batch_size
-        self.images_in_batch = 0    # Reset this variable to mind conflicts with earlier created batches
-        with open(self.label_path, "r") as read_json:
-            label_data = json.load(read_json)
+        offset = self.batch_index * self.batch_size % self.dataset_population
 
-        x = 0
-        while x < self.batch_size and self.images_in_batch < self.batch_size:
-            # If more data is needed than available, reset batch_index and thus offset to start again from beginning
-            # In that case also update the epoch
-            y = len([entry for entry in os.listdir(self.file_path) if
-                    os.path.isfile(os.path.join(self.file_path, entry))])
-            if x + offset >= len([entry for entry in os.listdir(self.file_path) if
-                                  os.path.isfile(os.path.join(self.file_path, entry))]):
-                self.batch_index = 0
-                offset = 0
-                self.epoch += 1
-                x = 0
-                # Reset the loop
-                continue
+        #If the offsett is 0 but batch index is not, that means we're starting all from the very first data again. Increase the epoch!
+        if offset == 0 and self.batch_index != 0:
+            self.epoch += 1
+            if self.shuffle:
+                self.shuffle_two_lists()
 
-            # Open image, resize and append it to the images list
-            image = np.load(os.path.join(self.file_path, str(x + offset) + '.npy'))
-            image = resize(image, (self.image_size[0], self.image_size[1]))
+        if offset + self.batch_size <= self.dataset_population:
+            images = self.images[offset:offset + self.batch_size]
+            labels = self.labels[offset:offset + self.batch_size]
+        else:
+            overflow = self.batch_size - (self.dataset_population - offset)
+            images = self.images[offset:] + self.images[:overflow]
+            labels = self.labels[offset:] + self.images[:overflow]
+            self.epoch += 1
+            if self.shuffle:
+                self.shuffle_two_lists()
 
-            images.append(self.augment(image))
-            labels.append(label_data.get(str(x + offset)))
-            self.images_in_batch += 1
-            x += 1
-
-        self.batch_index += 1
-        # Zip images and labels together, shuffle them and unzip them again
-        if self.shuffle:
-            temp = list(zip(images, labels))
-            random.shuffle(temp)
-            images, labels = zip(*temp)
-            images, labels = list(images), list(labels)
-
-        images = np.array(images)   # convert from list to numpy array
-
+        #IMPORTANT: SELF.IMAGES CONTAINS ALL THE DATA SET AND IT IS READ ONCE IN INIT FUNCTION. IMAGES CONTAIN ONLY THE CURRENT BATCH IMAGES
+        self.batch_index += 1 #Increase the index whether there is an overflow or not.
+        images = np.array(images)  # convert from list to numpy array
         return images, labels
 
     def augment(self, img):
@@ -119,4 +125,11 @@ class ImageGenerator:
             plt.imshow(images[i])
             plt.xlabel(self.class_name(labels[i]))
         plt.show()
+
+    def shuffle_two_lists(self):
+        np.random.seed()
+        c = list(zip(self.images, self.labels))
+        random.shuffle(c)
+        self.images, self.labels = zip(*c)
+
 

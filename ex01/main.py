@@ -8,9 +8,12 @@ g1 = ImageGenerator(file_path='./data/exercise_data/',
                     label_path='./data/Labels.json',
                     batch_size=50,
                     image_size=[32, 32, 3],
-                    rotation=True,
-                    mirroring=True,
+                    rotation=False,
+                    mirroring=False,
                     shuffle=True)
+g1.show()
+g1.show()
+g1.show()
 
-g1.show()
-g1.show()
+
+
