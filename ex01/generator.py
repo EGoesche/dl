@@ -49,36 +49,40 @@ class ImageGenerator:
         with open(self.label_path, "r") as read_json:
             label_data = json.load(read_json)
 
-        if not self.shuffle:
-            x = 0
-            while x < self.batch_size and self.images_in_batch < self.batch_size:
-                # If more data is needed than available, reset batch_index and thus offset to start again from beginning
-                # In that case also update the epoch
-                y = len([entry for entry in os.listdir(self.file_path) if
-                        os.path.isfile(os.path.join(self.file_path, entry))])
-                if x + offset >= len([entry for entry in os.listdir(self.file_path) if
-                                      os.path.isfile(os.path.join(self.file_path, entry))]):
-                    self.batch_index = 0
-                    offset = 0
-                    self.epoch += 1
-                    print("------------------------------")
-                    x = 0
-                    # Reset the loop
-                    continue
+        x = 0
+        while x < self.batch_size and self.images_in_batch < self.batch_size:
+            # If more data is needed than available, reset batch_index and thus offset to start again from beginning
+            # In that case also update the epoch
+            y = len([entry for entry in os.listdir(self.file_path) if
+                    os.path.isfile(os.path.join(self.file_path, entry))])
+            if x + offset >= len([entry for entry in os.listdir(self.file_path) if
+                                  os.path.isfile(os.path.join(self.file_path, entry))]):
+                self.batch_index = 0
+                offset = 0
+                self.epoch += 1
+                x = 0
+                # Reset the loop
+                continue
 
-                # Open image, resize and append it to the images list
-                image = np.load(os.path.join(self.file_path, str(x + offset) + '.npy'))
-                image = resize(image, (self.image_size[0], self.image_size[1]))
+            # Open image, resize and append it to the images list
+            image = np.load(os.path.join(self.file_path, str(x + offset) + '.npy'))
+            image = resize(image, (self.image_size[0], self.image_size[1]))
 
-                images.append(self.augment(image))
-                labels.append(label_data.get(str(x)))
-                self.images_in_batch += 1
-                x += 1
-
-        # TODO: implement next method with shuffle flag
+            images.append(self.augment(image))
+            labels.append(label_data.get(str(x + offset)))
+            self.images_in_batch += 1
+            x += 1
 
         self.batch_index += 1
-        print("***********************")
+        # Zip images and labels together, shuffle them and unzip them again
+        if self.shuffle:
+            temp = list(zip(images, labels))
+            random.shuffle(temp)
+            images, labels = zip(*temp)
+            images, labels = list(images), list(labels)
+
+        images = np.array(images)   # convert from list to numpy array
+
         return images, labels
 
     def augment(self, img):

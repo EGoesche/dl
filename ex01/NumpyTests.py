@@ -202,6 +202,7 @@ class TestGen(unittest.TestCase):
         b1_epoch0 = gen.next()[0]
         gen.next()
         b1_epoch1 = gen.next()[0]
+
         self.assertFalse(np.all(np.sort(b1_epoch0, axis=None) == np.sort(b1_epoch1, axis=None)))
 
     def testEpoch(self):

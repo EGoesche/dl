@@ -9,11 +9,8 @@ g1 = ImageGenerator(file_path='./data/exercise_data/',
                     batch_size=50,
                     image_size=[32, 32, 3],
                     rotation=True,
-                    mirroring=True)
+                    mirroring=True,
+                    shuffle=True)
 
 g1.show()
-print(g1.current_epoch())
 g1.show()
-print(g1.current_epoch())
-g1.show()
-print(g1.current_epoch())
