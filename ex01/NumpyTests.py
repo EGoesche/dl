@@ -136,8 +136,8 @@ class TestSpectrum(unittest.TestCase):
 class TestGen(unittest.TestCase):
     def setUp(self):
         # Set the label and the file path
-        self.label_path = './Labels.json'
-        self.file_path = './exercise_data/'
+        self.label_path = './data/Labels.json'
+        self.file_path = './data/exercise_data/'
 
     def _get_corner_points(self, image):
         # Utility function to check whether the augmentations where performed
@@ -208,6 +208,7 @@ class TestGen(unittest.TestCase):
         from generator import ImageGenerator
         gen = ImageGenerator(self.file_path, self.label_path, 50, [32, 32, 3], rotation=False, mirroring=False,
                              shuffle=True)
+
         gen.next()
         self.assertEqual(0, gen.current_epoch())
         gen.next()

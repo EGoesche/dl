@@ -32,7 +32,7 @@ class ImageGenerator:
         self.rotation = rotation
         self.mirroring = mirroring
         self.shuffle = shuffle
-        self.current_epoch = 0
+        self.epoch = 0
 
         self.class_dict = {0: 'airplane', 1: 'automobile', 2: 'bird', 3: 'cat', 4: 'deer', 5: 'dog', 6: 'frog',
                            7: 'horse', 8: 'ship', 9: 'truck'}
@@ -53,14 +53,15 @@ class ImageGenerator:
             x = 0
             while x < self.batch_size and self.images_in_batch < self.batch_size:
                 # If more data is needed than available, reset batch_index and thus offset to start again from beginning
-                # In that case also update the current_epoch
+                # In that case also update the epoch
                 y = len([entry for entry in os.listdir(self.file_path) if
                         os.path.isfile(os.path.join(self.file_path, entry))])
                 if x + offset >= len([entry for entry in os.listdir(self.file_path) if
                                       os.path.isfile(os.path.join(self.file_path, entry))]):
                     self.batch_index = 0
                     offset = 0
-                    self.current_epoch += 1
+                    self.epoch += 1
+                    print("------------------------------")
                     x = 0
                     # Reset the loop
                     continue
@@ -77,6 +78,7 @@ class ImageGenerator:
         # TODO: implement next method with shuffle flag
 
         self.batch_index += 1
+        print("***********************")
         return images, labels
 
     def augment(self, img):
@@ -93,8 +95,8 @@ class ImageGenerator:
         return img
 
     def current_epoch(self):
-        # return the current epoch number
-        return self.current_epoch
+        # return the epoch number
+        return self.epoch
 
     def class_name(self, x):
         # This function returns the class name for a specific input
@@ -106,7 +108,7 @@ class ImageGenerator:
         images, labels = self.next()
         plt.figure(figsize=(10, 10))
         for i in range(self.batch_size):
-            plt.subplot(5, 5, i + 1)
+            plt.subplot(10, 5, i + 1)
             plt.xticks([])
             plt.yticks([])
             plt.grid(False)
