@@ -15,19 +15,25 @@ class FullyConnected(Base):
         self._gradient_weights = None
 
     def forward(self, input_tensor):
-        # TODO: add a column with ones because we handle the bias as a weight
-        self.input_tensor = input_tensor    # create a copy for backward pass
+        input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]  # add a column of ones for bias
+        self.input_tensor = input_tensor  # create a copy for backward pass
+
+        # Return input_tensor for next layer
         return np.matmul(input_tensor, self.weights)
 
     def backward(self, error_tensor):
         # Calculate gradient
         self._gradient_weights = np.matmul(self.input_tensor.T, error_tensor)
 
+        # Get unupdated weights without the weights for the bias
+        unupdated_weights = np.delete(self.weights, len(self.weights) - 1, axis=0)
+
         # Update weights
         if self._optimizer is not None:
             self.weights = self._optimizer.calculate_update(self.weights, self._gradient_weights)
 
-        # TODO: return error tensor for prev layer
+        # Return error_tensor for the previous layer
+        return np.matmul(error_tensor, unupdated_weights.T)
 
     @property
     def optimizer(self):
@@ -44,5 +50,3 @@ class FullyConnected(Base):
     @gradient_weights.setter
     def gradient_weights(self, gradient_weights):
         self._gradient_weights = gradient_weights
-
-
