@@ -13,14 +13,15 @@ class FullyConnected(Base.BaseLayer):
         self.weights = np.random.uniform(0, 1, size=(input_size + 1, output_size))  # plus 1 for the bias
         self._gradient_weights = None
 
+    # returns a tenser that serves as the input_tensor for the next layer
     def forward(self, input_tensor):
         input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]  # add a column of ones for bias
         self.input_tensor = input_tensor  # create a copy for backward pass
-        # Return input_tensor for next layer
+        # Return input_tensor for next layer. On slides, the order is reversed. it's weights * input_tensor (not good)
         return np.matmul(input_tensor, self.weights)
 
     def backward(self, error_tensor):
-        # Calculate gradient
+        # Calculate gradient (on slides, the order is reversed. it's error_tensor * input_tensor.T)
         self._gradient_weights = np.matmul(self.input_tensor.T, error_tensor)
 
         # Get unupdated weights without the weights for the bias
