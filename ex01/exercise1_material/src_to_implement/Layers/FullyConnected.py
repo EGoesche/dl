@@ -1,10 +1,9 @@
-import random
-
-import Base
 import numpy as np
 
+from exercise1_material.src_to_implement.Layers import Base
 
-class FullyConnected(Base):
+
+class FullyConnected(Base.BaseLayer):
     def __init__(self, input_size, output_size):
         super().trainable = True
         self.input_size = input_size
@@ -17,7 +16,6 @@ class FullyConnected(Base):
     def forward(self, input_tensor):
         input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]  # add a column of ones for bias
         self.input_tensor = input_tensor  # create a copy for backward pass
-
         # Return input_tensor for next layer
         return np.matmul(input_tensor, self.weights)
 
