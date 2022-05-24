@@ -11,10 +11,11 @@ class FullyConnected(Base):
         self.output_size = output_size
         self.input_tensor = None
         self._optimizer = None
-        self.weights = [random.uniform(0, 1) for _ in range(input_size)]
+        self.weights = np.random.uniform(0, 1, size=(input_size + 1, output_size))  # plus 1 for the bias
         self._gradient_weights = None
 
     def forward(self, input_tensor):
+        # TODO: add a column with ones because we handle the bias as a weight
         self.input_tensor = input_tensor    # create a copy for backward pass
         return np.matmul(input_tensor, self.weights)
 
