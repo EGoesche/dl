@@ -1,8 +1,8 @@
-import Base
+from exercise1_material.src_to_implement.Layers import Base
 import numpy as np
 
 
-class ReLU(Base):
+class ReLU(Base.BaseLayer):
     def __init__(self):
         pass
 

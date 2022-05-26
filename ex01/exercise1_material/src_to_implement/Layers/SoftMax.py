@@ -1,8 +1,8 @@
-import Base
 import numpy as np
+from exercise1_material.src_to_implement.Layers import Base
 
 
-class SoftMax(Base):
+class SoftMax(Base.BaseLayer):
     def __init__(self):
         self.max_item = None
         self.out_y = None

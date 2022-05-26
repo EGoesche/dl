@@ -1,3 +1,3 @@
 class BaseLayer:
-    def __int__(self):
+    def __init__(self):
         self.trainable = False
