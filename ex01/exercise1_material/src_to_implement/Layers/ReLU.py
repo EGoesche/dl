@@ -4,7 +4,7 @@ import numpy as np
 
 class ReLU(Base.BaseLayer):
     def __init__(self):
-        pass
+        super().__init__()
 
     def forward(self, input_tensor):
         forward_tensor = np.array([rectified_vector(x) for x in input_tensor])
