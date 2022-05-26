@@ -5,22 +5,31 @@ from exercise1_material.src_to_implement.Layers import Base
 class SoftMax(Base.BaseLayer):
     def __init__(self):
         super().__init__()
-        self.max_item = None
+        self.max_items = None
         self.out_y = None
 
     def forward(self, input_tensor):
         self.find_max(input_tensor)
-        expo = np.exp(input_tensor - self.max_item)
-        denom = np.sum([expo])
-        self.out_y = expo/denom
-        return self.out_y.copy()
+        input_tensor_new = input_tensor - self.max_items
+        out_prob = np.zeros_like(input_tensor)
+
+        for count, arr in enumerate(input_tensor_new):
+            expo = np.exp(arr)
+            denom = np.sum([expo])
+            out_prob[count] = expo/denom
+
+        self.out_y = out_prob
+        return out_prob
 
     def backward(self, error_tensor):
-        error_mul_y = np.sum(error_tensor * self.out_y)
-        return self.out_y * (error_tensor - error_mul_y)
+        res = np.zeros_like(error_tensor)
+        for count, arr in enumerate(error_tensor):
+            error_mul_y = arr * self.out_y[count]
+            res[count] = self.out_y[count] * (arr - error_mul_y)
+        return res
 
     def find_max(self, input_tensor):
-        self.max_item = max(input_tensor)
+        self.max_items = input_tensor.max(axis=1).reshape(input_tensor.shape[0], 1)
 
 
 
