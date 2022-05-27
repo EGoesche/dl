@@ -5,7 +5,8 @@ from exercise1_material.src_to_implement.Layers import Base
 
 class FullyConnected(Base.BaseLayer):
     def __init__(self, input_size, output_size):
-        super().trainable = True
+        super().__init__()
+        self.trainable = True
         self.input_size = input_size
         self.output_size = output_size
         self.input_tensor = None
