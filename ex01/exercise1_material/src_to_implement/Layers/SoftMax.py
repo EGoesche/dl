@@ -24,8 +24,8 @@ class SoftMax(Base.BaseLayer):
     def backward(self, error_tensor):
         res = np.zeros_like(error_tensor)
         for count, arr in enumerate(error_tensor):
-            error_mul_y = arr * self.out_y[count]
-            res[count] = self.out_y[count] * (arr - error_mul_y)
+            sumo = np.sum(arr * self.out_y[count])
+            res[count] = self.out_y[count] * (arr - sumo)
         return res
 
     def find_max(self, input_tensor):
