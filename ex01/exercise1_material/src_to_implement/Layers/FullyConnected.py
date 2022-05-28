@@ -5,6 +5,11 @@ from exercise1_material.src_to_implement.Layers import Base
 
 class FullyConnected(Base.BaseLayer):
     def __init__(self, input_size, output_size):
+        """
+        Constructor for a fully connected layer.
+        :param input_size: number of inputs
+        :param output_size: number of outputs
+        """
         super().__init__()
         self.trainable = True
         self.input_size = input_size
@@ -14,15 +19,24 @@ class FullyConnected(Base.BaseLayer):
         self.weights = np.random.uniform(0, 1, size=(input_size + 1, output_size))  # plus 1 for the bias
         self._gradient_weights = None
 
-    # returns a tenser that serves as the input_tensor for the next layer
     def forward(self, input_tensor):
-        input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]  # add a column of ones for bias
+        """
+        The forward pass adds a column of ones for the bias to the input and performs a matrix mul with the weights.
+        :param input_tensor: input which will get multiplied with the weights
+        :return: input tensor for the next layer
+        """
+        input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]
         self.input_tensor = input_tensor  # create a copy for backward pass
-        # Return input_tensor for next layer. On slides, the order is reversed. it's weights * input_tensor (not good)
+        # On slides, the order is reversed. It's weights * input_tensor (not good).
         return np.matmul(input_tensor, self.weights)
 
     def backward(self, error_tensor):
-        # Calculate gradient (on slides, the order is reversed. it's error_tensor * input_tensor.T)
+        """
+        The backward pass calculates the gradient w.r.t. to the weights to perform an update of the weights.
+        :param error_tensor: error tensor for current layer
+        :return: error tensor for the previous layer
+        """
+        # Note: on slides, the order is reversed. It's error_tensor * input_tensor.T
         self._gradient_weights = np.matmul(self.input_tensor.T, error_tensor)
 
         # Get unupdated weights without the weights for the bias
