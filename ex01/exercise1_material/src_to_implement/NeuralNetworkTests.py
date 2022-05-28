@@ -264,6 +264,8 @@ class TestCrossEntropyLoss(unittest.TestCase):
 
     def test_gradient(self):
         input_tensor = np.abs(np.random.random(self.label_tensor.shape))
+        print("Input tensor shape: " + str(input_tensor.shape))
+        print("Label tensor shape: " + str(self.label_tensor.shape))
         layers = list()
         layers.append(Loss.CrossEntropyLoss())
         difference = Helpers.gradient_check(layers, input_tensor, self.label_tensor)
