@@ -9,42 +9,31 @@ class SoftMax(Base.BaseLayer):
         """
         super().__init__()
         self.max_items = None
-        self.out_y = None
+        self.pred = None
 
     def forward(self, input_tensor):
         """
         The forward pass the SoftMax activation function is used to transform the logits (the output of the network)
-        into a probability distribution.
+        into a probability distribution. (Formula: yk = exp(xk)/sum_over_batches(exp(xj)))
         :param input_tensor: input on which the SoftMax function will get applied
-        :return: estimated class probabilities for each row representing an element of the batch
+        :return: prediction for the class probabilities for each row representing an element of the batch
         """
-        self.find_max(input_tensor)
-        input_tensor_new = input_tensor - self.max_items
-        out_prob = np.zeros_like(input_tensor)
+        input_tensor -= np.max(input_tensor)    # increase numerical stability (xk = xk − max (x))
+        expo = np.exp(input_tensor)
+        denom = np.sum(expo, axis=1, keepdims=True)
+        self.pred = expo / denom
 
-        for count, arr in enumerate(input_tensor_new):
-            expo = np.exp(arr)
-            denom = np.sum([expo])
-            out_prob[count] = expo/denom
+        return self.pred
 
-        self.out_y = out_prob
-        return out_prob
 
     def backward(self, error_tensor):
         """
-        The backward pass the SoftMax activation function.
+        The backward pass the SoftMax activation function. (Formula: En-1 = y * (En - sum(Enjyj)))
         :param error_tensor: error tensor for current layer
         :return: error tensor for the previous layer
         """
-        res = np.zeros_like(error_tensor)
-        for count, arr in enumerate(error_tensor):
-            sumo = np.sum(arr * self.out_y[count])
-            res[count] = self.out_y[count] * (arr - sumo)
-        return res
+        enjyj = error_tensor * self.pred
+        sum_of_enjyj = np.sum(enjyj, axis=1, keepdims=True)
+        error_tensor = self.pred * (error_tensor - sum_of_enjyj)
 
-    def find_max(self, input_tensor):
-        self.max_items = input_tensor.max(axis=1).reshape(input_tensor.shape[0], 1)
-
-
-
-
+        return error_tensor
