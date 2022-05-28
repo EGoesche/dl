@@ -22,7 +22,6 @@ class SoftMax(Base.BaseLayer):
         return out_prob
 
     def backward(self, error_tensor):
-        error_tensor = error_tensor[0]  # duuno why
         res = np.zeros_like(error_tensor)
         for count, arr in enumerate(error_tensor):
             error_mul_y = arr * self.out_y[count]
