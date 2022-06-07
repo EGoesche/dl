@@ -9,26 +9,24 @@ class Pooling:
         :param pooling_shape:
         """
         self.input_tensor = None
-        self.batch_size = None
-        self.input_channels = None
         self.location = None
         self.stride_shape = stride_shape
         self.pooling_shape = pooling_shape
 
     def forward(self, input_tensor):
         self.input_tensor = input_tensor
-        self.batch_size = input_tensor.shape[0]
-        self.input_channels = input_tensor.shape[1]
         self.location = np.zeros(shape=(input_tensor.shape, 4))     # add a dimension of len 4 for max value location
+        input_channels = input_tensor.shape[1]
+        batch_size = input_tensor.shape[0]
 
         output_height = int((self.input_tensor.shape[2] - self.pooling_shape[0]) / self.stride_shape[0]) + 1
         output_width = int((self.input_tensor.shape[3] - self.pooling_shape[1]) / self.stride_shape[1]) + 1
 
-        output_tensor = np.zeros(shape=(self.batch_size, self.input_channels, output_height, output_width))
+        output_tensor = np.zeros(shape=(batch_size, input_channels, output_height, output_width))
 
         # loop over every single value in every input channel in every batch
-        for batch in range(self.batch_size):
-            for input_channel in range(self.input_channels):
+        for batch in range(batch_size):
+            for input_channel in range(input_channels):
                 for y in range(output_height):
                     # define the range of the rows in which pooling will be applied
                     first_row = y * self.stride_shape[0]
