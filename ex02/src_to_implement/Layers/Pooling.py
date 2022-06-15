@@ -1,13 +1,17 @@
 import numpy as np
 
+from src_to_implement.Layers import Base
 
-class Pooling:
+
+class Pooling(Base.BaseLayer):
     def __init__(self, stride_shape, pooling_shape):
         """
         Constructor for the Pooling layer.
         :param stride_shape: controls amount of downsampling
         :param pooling_shape:
         """
+        super().__init__()
+        self.trainable = False
         self.input_tensor = None
         self.location = None
         self.stride_shape = stride_shape
@@ -15,7 +19,7 @@ class Pooling:
 
     def forward(self, input_tensor):
         self.input_tensor = input_tensor
-        self.location = np.zeros(shape=(input_tensor.shape, 4))     # add a dimension of len 4 for max value location
+        self.location = np.zeros(shape=(*input_tensor.shape, 4))     # add a dimension of len 4 for max value location
         input_channels = input_tensor.shape[1]
         batch_size = input_tensor.shape[0]
 
@@ -45,7 +49,7 @@ class Pooling:
 
                         # store maxima locations
                         # unravel_index returns coordinates of max value inside the kernel
-                        location = np.unravel_index(np.max(kernel), kernel.shape)
+                        location = np.unravel_index(np.argmax(kernel), kernel.shape)
                         # max value is in the same batch and input channel
                         self.location[batch, input_channel, y, x, 0] = batch
                         self.location[batch, input_channel, y, x, 1] = input_channel
