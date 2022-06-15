@@ -56,6 +56,7 @@ class Conv(Base.BaseLayer):
                 conv_image = signal.correlate(image, self.weights[num_kernel], 'same')
 
                 # extract the valid (middle) channel (number of input channels // 2)
+                # correlate function adds padding also z direction (channels). We need only the middle channel.
                 conv_image = conv_image[self.convolution_shape[0] // 2]
 
                 # element-wise addition of bias which belongs to the current kernel
