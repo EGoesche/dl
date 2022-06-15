@@ -48,28 +48,29 @@ class Conv(Base.BaseLayer):
     def forward(self, input_tensor):
         self.input_tensor = input_tensor  # create a copy for backward pass
         feature_maps = []  # feature maps that form the output of the forward pass
-        for channel in self.input_tensor:
-            channel_feature_map = []  # feature maps in the current channel
+        for image in self.input_tensor:   # running for every element in the batch
+            image_feature_map = []  # feature maps in the current image
+            # In the loop below, we convolve the image by every kernel, and stack the result into image_feature_map.
             for num_kernel in range(self.num_kernels):
                 # Do a convolution of current image (or 1D signal) with current kernel
-                conv_channel = signal.correlate(channel, self.weights[num_kernel], 'same')
+                conv_image = signal.correlate(image, self.weights[num_kernel], 'same')
 
                 # extract the valid (middle) channel (number of input channels // 2)
-                conv_channel = conv_channel[self.convolution_shape[0] // 2]
+                conv_image = conv_image[self.convolution_shape[0] // 2]
 
                 # element-wise addition of bias which belongs to the current kernel
-                conv_channel += self.bias[num_kernel]
+                conv_image += self.bias[num_kernel]
 
                 # stride
                 if len(self.stride_shape) == 1:
                     # In case of 1D signals
-                    conv_channel = conv_channel[::self.stride_shape[0]]
+                    conv_image = conv_image[::self.stride_shape[0]]
                 else:
                     # In case of images
-                    conv_channel = conv_channel[::self.stride_shape[0], ::self.stride_shape[1]]
+                    conv_image = conv_image[::self.stride_shape[0], ::self.stride_shape[1]]
 
-                channel_feature_map.append(conv_channel)
-            feature_maps.append(channel_feature_map)
+                image_feature_map.append(conv_image)
+            feature_maps.append(image_feature_map)
             output = np.array(feature_maps)
 
         return output
