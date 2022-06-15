@@ -13,7 +13,7 @@ class Conv(Base.BaseLayer):
         self.num_kernels = num_kernels
 
         # Initialize the parameters of this layer uniformly random in the range [0; 1)
-        self.weights = np.random.uniform(0, 1, size=(self.num_kernels, self.convolution_shape))
+        self.weights = np.random.uniform(0, 1, size=(self.num_kernels, *self.convolution_shape))
         self.bias = np.random.uniform(0, 1, size=self.num_kernels)
 
         self._gradient_weights = np.zeros(self.weights.shape)
@@ -72,7 +72,7 @@ class Conv(Base.BaseLayer):
             feature_maps.append(channel_feature_map)
             output = np.array(feature_maps)
 
-            return output
+        return output
 
     def backward(self, error_tensor):
         # TODO: Implement backward pass
