@@ -1,8 +1,12 @@
 import numpy as np
 
+from src_to_implement.Layers import Base
 
-class Flatten:
+
+class Flatten(Base.BaseLayer):
     def __init__(self):
+        super().__init__()
+        self.trainable = False
         self.shape = None
 
     def forward(self, input_tensor):
@@ -18,4 +22,4 @@ class Flatten:
 
     def backward(self, error_tensor):
         batches = len(error_tensor)
-        return error_tensor.reshape(batches, self.shape[0], self.shape[1])
+        return error_tensor.reshape(batches, *self.shape)
