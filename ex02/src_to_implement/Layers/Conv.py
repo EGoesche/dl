@@ -79,6 +79,7 @@ class Conv(Base.BaseLayer):
     def backward(self, error_tensor):
         # TODO: Implement backward pass
         backward_kernels = []
+        error_n_minus_one = []
 
         #We stack every kernel via axis 1, we'll separate into H kernels afterwards
         combined_kernels = np.stack(self.weights, axis=1)
@@ -86,6 +87,12 @@ class Conv(Base.BaseLayer):
         for num_channel in range(self.convolution_shape[0]):
             backward_kernels.append(combined_kernels[num_channel])
         backward_kernels = np.array(backward_kernels)
+
+        #Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1)
+        for bkernel in backward_kernels:
+            conv_channel = signal.convolve2d(error_tensor, bkernel, 'same')
+            error_n_minus_one.append(conv_channel)
+        error_n_minus_one = np.array(error_n_minus_one)
 
 
 
