@@ -78,7 +78,21 @@ class Conv(Base.BaseLayer):
 
     def backward(self, error_tensor):
         # TODO: Implement backward pass
-        pass
+        backward_kernels = []
+
+        #We stack every kernel via axis 1, we'll separate into H kernels afterwards
+        combined_kernels = np.stack(self.weights, axis=1)
+        #Iterate over all channels (split into H kernels)
+        for num_channel in range(self.convolution_shape[0]):
+            backward_kernels.append(combined_kernels[num_channel])
+        backward_kernels = np.array(backward_kernels)
+
+
+
+
+
+
+
 
     def initialize(self, weights_initializer, bias_initializer):
         # Get input and output dimensions
