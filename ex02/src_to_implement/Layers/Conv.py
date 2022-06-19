@@ -100,6 +100,17 @@ class Conv(Base.BaseLayer):
             gradient_bias[channel] = np.sum(error_tensor[channel])
         gradient_bias = np.array(gradient_bias)
 
+        # Gradient with respect to weights
+        # QUESTION: Here, the correlation operation is done for every image in the batch and the results r concatenated
+        # Is this correct?
+        gradient_wrt_weights = []
+        for image in self.input_tensor:
+            for channel in range(self.input_tensor.shape[1]):
+                corr_channel = signal.correlate(image[channel], error_tensor[channel], 'same')
+                corr_channel = corr_channel[self.convolution_shape[0] // 2]
+                gradient_wrt_weights.append(corr_channel)
+        gradient_wrt_weights = np.array(gradient_wrt_weights)
+
         # Update weights
         if self._optimizer is not None:
             # optimizer_weights = deep copy of optimizer
