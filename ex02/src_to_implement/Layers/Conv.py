@@ -48,7 +48,7 @@ class Conv(Base.BaseLayer):
     def forward(self, input_tensor):
         self.input_tensor = input_tensor  # create a copy for backward pass
         feature_maps = []  # feature maps that form the output of the forward pass
-        for image in self.input_tensor:   # running for every element in the batch
+        for image in self.input_tensor:  # running for every element in the batch
             image_feature_map = []  # feature maps in the current image
             # In the loop below, we convolve the image by every kernel, and stack the result into image_feature_map.
             for num_kernel in range(self.num_kernels):
@@ -81,23 +81,31 @@ class Conv(Base.BaseLayer):
         backward_kernels = []
         error_n_minus_one = []
 
-        #We stack every kernel via axis 1, we'll separate into H kernels afterwards
+        # We stack every kernel via axis 1, we'll separate into H kernels afterwards
         combined_kernels = np.stack(self.weights, axis=1)
-        #Iterate over all channels (split into H kernels)
+        # Iterate over all channels (split into H kernels)
         for num_channel in range(self.convolution_shape[0]):
             backward_kernels.append(combined_kernels[num_channel])
         backward_kernels = np.array(backward_kernels)
 
-        #Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1)
+        # Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1)
         for bkernel in backward_kernels:
             conv_channel = signal.convolve2d(error_tensor, bkernel, 'same')
+            conv_channel = conv_channel[self.convolution_shape[0] // 2]
             error_n_minus_one.append(conv_channel)
         error_n_minus_one = np.array(error_n_minus_one)
 
+        # Calculate gradient w.r.t. to bias
+        gradient_bias = []
+        for channel in range(self.convolution_shape[0]):
+            gradient_bias[channel] = np.sum(error_tensor[channel])
+        gradient_bias = np.array(gradient_bias)
 
-
-
-
+        # Update weights
+        if self._optimizer is not None:
+            # optimizer_weights = deep copy of optimizer
+            # optimizer_bias = ""
+            self.weights = self.optimizer_weights.calculate_update(self.weights, self._gradient_weights)
 
 
 
