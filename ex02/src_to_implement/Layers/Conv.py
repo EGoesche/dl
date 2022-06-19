@@ -77,7 +77,6 @@ class Conv(Base.BaseLayer):
         return output
 
     def backward(self, error_tensor):
-        # TODO: Implement backward pass
         backward_kernels = []
         error_n_minus_one = []
 
@@ -90,7 +89,7 @@ class Conv(Base.BaseLayer):
 
         # Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1)
         for bkernel in backward_kernels:
-            conv_channel = signal.convolve2d(error_tensor, bkernel, 'same')
+            conv_channel = signal.convolve(error_tensor, bkernel, 'same')
             conv_channel = conv_channel[self.convolution_shape[0] // 2]
             error_n_minus_one.append(conv_channel)
         error_n_minus_one = np.array(error_n_minus_one)
