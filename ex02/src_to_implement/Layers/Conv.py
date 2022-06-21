@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 from scipy import signal
 
@@ -111,13 +112,12 @@ class Conv(Base.BaseLayer):
                 gradient_wrt_weights.append(corr_channel)
         gradient_wrt_weights = np.array(gradient_wrt_weights)
 
-        # Update weights
+        # Update weights and bias
         if self._optimizer is not None:
-            # optimizer_weights = deep copy of optimizer
-            # optimizer_bias = ""
-            self.weights = self.optimizer_weights.calculate_update(self.weights, self._gradient_weights)
-
-
+            optimizer_weights = copy.deepcopy(self._optimizer)
+            optimizer_bias = self._optimizer
+            self.weights = optimizer_weights.calculate_update(self.weights, self.gradient_weights)
+            self.bias = optimizer_bias.calculate_update(self.bias, self.gradient_bias)
 
     def initialize(self, weights_initializer, bias_initializer):
         # Get input and output dimensions
