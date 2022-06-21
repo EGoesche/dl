@@ -81,6 +81,16 @@ class Conv(Base.BaseLayer):
         error_n_minus_one = []
         error_n_minus_one_in_batch = []
 
+        '''
+        #Upsampling
+        last_shape = error_tensor.shape[len(error_tensor.shape) - 1]
+        if len(error_tensor.shape) == 3:
+            error_tensor = np.pad(error_tensor, [(0,), (0,), (??? // 2,)], mode='constant')
+        elif len(error_tensor.shape) == 2:
+            error_tensor = np.pad(error_tensor, [(0,), (??? // 2,)], mode='constant')
+            '''
+
+
         # We stack every kernel via axis 1, creating backward kernels
         backward_kernels = np.stack(self.weights, axis=1)
 
