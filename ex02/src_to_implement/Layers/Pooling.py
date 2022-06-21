@@ -31,33 +31,36 @@ class Pooling(Base.BaseLayer):
         # loop over every single value in every input channel in every batch
         for batch in range(batch_size):
             for input_channel in range(input_channels):
-                for y in range(output_height):
-                    # define the range of the rows in which pooling will be applied
-                    first_row = y * self.stride_shape[0]
-                    last_row = first_row + self.pooling_shape[0]
+                y_output = 0
+                for y_input in range(0, input_tensor.shape[2], self.stride_shape[0]):
+                    x_output = 0
+                    for x_input in range(0, input_tensor.shape[3], self.stride_shape[1]):
+                        # check if pooling kernel is inside the input tensor - otherwise IndexError
+                        try:
+                            # define pooling kernel on input tensor using a.o. current x, y and demanded pooling shape
+                            kernel = input_tensor[
+                                     batch,
+                                     input_channel,
+                                     y_input: y_input + self.pooling_shape[0],
+                                     x_input: x_input + self.pooling_shape[1]]
 
-                    for x in range(output_width):
-                        # define the range of the columns in which pooling will be applied
-                        first_col = x * self.stride_shape[1]
-                        last_col = first_col + self.pooling_shape[1]
+                            # write the max value of the current pooling area into the output_tensor
+                            output_tensor[batch, input_channel, y_output, x_output] = np.max(kernel)
 
-                        # use the ranges of rows and columns to extract the current pooling kernel from the input_tensor
-                        kernel = input_tensor[batch, input_channel, first_row:last_row, first_col:last_col]
+                            # store maxima locations
+                            # unravel_index returns coordinates of max value inside the kernel
+                            location = np.unravel_index(np.argmax(kernel), kernel.shape)
+                            # max value is in the same batch and input channel
+                            self.location[batch, input_channel, y_output, x_output, 0] = batch
+                            self.location[batch, input_channel, y_output, x_output, 1] = input_channel
+                            # use the max value coordinates in the kernel as the residual to current (y, x) position
+                            self.location[batch, input_channel, y_output, x_output, 2] = y_input + location[0]
+                            self.location[batch, input_channel, y_output, x_output, 3] = x_input + location[1]
+                        except IndexError:
+                            continue
 
-                        # write the max value of the current pooling area into the output_tensor
-                        output_tensor[batch, input_channel, y, x] = np.max(kernel)
-
-                        # store maxima locations
-                        # unravel_index returns coordinates of max value inside the kernel
-                        location = np.unravel_index(np.argmax(kernel), kernel.shape)
-                        # max value is in the same batch and input channel
-                        self.location[batch, input_channel, y, x, 0] = batch
-                        self.location[batch, input_channel, y, x, 1] = input_channel
-
-                        # use the max value coordinates in the kernel as the residual to current (y, x) position
-                        self.location[batch, input_channel, y, x, 2] = y + location[0]
-                        self.location[batch, input_channel, y, x, 3] = x + location[1]
-
+                        x_output += 1
+                    y_output += 1
         return output_tensor
 
     def backward(self, error_tensor):
