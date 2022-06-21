@@ -96,10 +96,15 @@ class Conv(Base.BaseLayer):
         error_n_minus_one = np.array(error_n_minus_one)
 
         # Calculate gradient w.r.t. to bias
-        gradient_bias = []
-        for channel in range(self.convolution_shape[0]):
-            gradient_bias[channel] = np.sum(error_tensor[channel])
-        gradient_bias = np.array(gradient_bias)
+        # Since every kernel has its own bias, we have to sum kernel-wise over all batches
+        if len(self.convolution_shape) == 2:
+            # 1D signals
+            for kernel in range(self.num_kernels):
+                self.gradient_bias[kernel] = np.sum(error_tensor[:, kernel, :])
+        else:
+            # 2D signals
+            for kernel in range(self.num_kernels):
+                self.gradient_bias[kernel] = np.sum(error_tensor[:, kernel, :, :])
 
         # Gradient with respect to weights
         # QUESTION: Here, the correlation operation is done for every image in the batch and the results r concatenated
