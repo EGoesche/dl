@@ -78,22 +78,22 @@ class Conv(Base.BaseLayer):
         return output
 
     def backward(self, error_tensor):
-        backward_kernels = []
         error_n_minus_one = []
+        error_n_minus_one_in_batch = []
 
-        # We stack every kernel via axis 1, we'll separate into H kernels afterwards
-        combined_kernels = np.stack(self.weights, axis=1)
-        # Iterate over all channels (split into H kernels)
-        for num_channel in range(self.convolution_shape[0]):
-            backward_kernels.append(combined_kernels[num_channel])
-        backward_kernels = np.array(backward_kernels)
+        # We stack every kernel via axis 1, creating backward kernels
+        backward_kernels = np.stack(self.weights, axis=1)
 
         # Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1)
-        for bkernel in backward_kernels:
-            conv_channel = signal.convolve(error_tensor, bkernel, 'same')
-            conv_channel = conv_channel[self.convolution_shape[0] // 2]
-            error_n_minus_one.append(conv_channel)
-        error_n_minus_one = np.array(error_n_minus_one)
+        # Error tensor is also a batch! So loop over them.
+        for single_tensor in error_tensor:
+            for bkernel in backward_kernels:
+                conv_channel = signal.convolve(single_tensor, bkernel, 'same')
+                conv_channel = conv_channel[self.convolution_shape[0] // 2]
+                error_n_minus_one.append(conv_channel)
+            error_n_minus_one_in_batch.append(error_n_minus_one)
+            error_n_minus_one = []
+        error_n_minus_one_in_batch = np.array(error_n_minus_one_in_batch)
 
         # Calculate gradient w.r.t. to bias
         # Since every kernel has its own bias, we have to sum kernel-wise over all batches
@@ -108,14 +108,15 @@ class Conv(Base.BaseLayer):
 
         # Gradient with respect to weights
         # QUESTION: Here, the correlation operation is done for every image in the batch and the results r concatenated
-        # Is this correct?
+        # The following is not correct due to error_tensor being a batch, not a single input. FIX!
+        '''
         gradient_wrt_weights = []
         for image in self.input_tensor:
             for channel in range(self.input_tensor.shape[1]):
                 corr_channel = signal.correlate(image[channel], error_tensor[channel], 'same')
                 corr_channel = corr_channel[self.convolution_shape[0] // 2]
                 gradient_wrt_weights.append(corr_channel)
-        gradient_wrt_weights = np.array(gradient_wrt_weights)
+        gradient_wrt_weights = np.array(gradient_wrt_weights) '''
 
         # Update weights and bias
         if self._optimizer is not None:
@@ -123,6 +124,8 @@ class Conv(Base.BaseLayer):
             optimizer_bias = self._optimizer
             self.weights = optimizer_weights.calculate_update(self.weights, self.gradient_weights)
             self.bias = optimizer_bias.calculate_update(self.bias, self.gradient_bias)
+
+        return error_n_minus_one_in_batch
 
     def initialize(self, weights_initializer, bias_initializer):
         # Get input and output dimensions
