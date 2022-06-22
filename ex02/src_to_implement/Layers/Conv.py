@@ -143,23 +143,30 @@ class Conv(Base.BaseLayer):
                 error_n_minus_one.append(conv_channel)
             error_n_minus_one_in_batch.append(error_n_minus_one)
             error_n_minus_one = []
-
-            # ---------------------------------------------------------------------------------------------------------
-            # Calculate gradient w.r.t. to weights
-            # ---------------------------------------------------------------------------------------------------------
-            # temp here is just add 1 dimension. So for example from (5,7) to (1,5,7)
-            for pi_count, image in enumerate(padded_input):
-                for channel in range(self.input_tensor.shape[1]):
-                    if len(single_err_tensor.shape) == 3:
-                        temp = single_err_tensor[channel].reshape(
-                            (1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
-                    else:
-                        temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0]))
-                    corr_channel = signal.correlate(image, temp, 'valid')
-                    corr_channel = corr_channel[self.convolution_shape[0] // 2]
-                    self.gradient_weights[et_count][pi_count] = corr_channel
-
         error_n_minus_one_in_batch = np.array(error_n_minus_one_in_batch)
+
+        # -------------------------------------------------------------------------------------------------------------
+        # Calculate gradient w.r.t. to weights
+        # -------------------------------------------------------------------------------------------------------------
+        if len(self.convolution_shape) == 2:
+            # 1D signals
+            self.gradient_weights = np.zeros((self.num_kernels,
+                                              self.convolution_shape[0],
+                                              "???"))
+            for kernel in range(self.num_kernels):
+                for channel in range(self.convolution_shape[0]):
+                    gradient = signal.correlate(padded_input[:, channel], error_tensor[:, kernel], mode='valid')
+                    self.gradient_weights[kernel, channel] += gradient[0]
+        else:
+            # 2D signals
+            self.gradient_weights = np.zeros((self.num_kernels, 
+                                              self.convolution_shape[0],
+                                              "???",
+                                              "???"))
+            for kernel in range(self.num_kernels):
+                for channel in range(self.convolution_shape[0]):
+                    gradient = signal.correlate(padded_input[:, channel], error_tensor[:, kernel], mode='valid')
+                    self.gradient_weights[kernel, channel] += gradient[0]
 
         # -------------------------------------------------------------------------------------------------------------
         # Calculate gradient w.r.t. to bias
