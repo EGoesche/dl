@@ -133,7 +133,10 @@ class Conv(Base.BaseLayer):
             # temp here is just add 1 dimension. So for example from (5,7) to (1,5,7)
             for pi_count, image in enumerate(padded_input):
                 for channel in range(self.input_tensor.shape[1]):
-                    temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
+                    if len(single_err_tensor.shape) == 3:
+                        temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
+                    else:
+                        temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0]))
                     corr_channel = signal.correlate(image, temp, 'valid')
                     corr_channel = corr_channel[self.convolution_shape[0] // 2]
                     self.gradient_weights[et_count][pi_count] = corr_channel

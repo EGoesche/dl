@@ -586,7 +586,6 @@ class TestConv(unittest.TestCase):
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check(layers, input_tensor, self.label_tensor)
-        print(self.label_tensor.shape)
         self.assertLessEqual(np.sum(difference), 5e-2)
 
     def test_gradient_weights(self):
