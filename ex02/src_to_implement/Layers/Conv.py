@@ -139,7 +139,7 @@ class Conv(Base.BaseLayer):
         for et_count, single_err_tensor in enumerate(error_tensor):
             for bkernel in backward_kernels:
                 conv_channel = signal.convolve(single_err_tensor, bkernel, 'same')
-                conv_channel = conv_channel[self.convolution_shape[0] // 2]
+                conv_channel = conv_channel[backward_kernels.shape[1] // 2]
                 error_n_minus_one.append(conv_channel)
             error_n_minus_one_in_batch.append(error_n_minus_one)
             error_n_minus_one = []
