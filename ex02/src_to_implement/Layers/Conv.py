@@ -81,15 +81,24 @@ class Conv(Base.BaseLayer):
         error_n_minus_one = []
         error_n_minus_one_in_batch = []
 
-        '''
         #Upsampling
+        flag = True
         last_shape = error_tensor.shape[len(error_tensor.shape) - 1]
-        if len(error_tensor.shape) == 3:
-            error_tensor = np.pad(error_tensor, [(0,), (0,), (??? // 2,)], mode='constant')
-        elif len(error_tensor.shape) == 2:
-            error_tensor = np.pad(error_tensor, [(0,), (??? // 2,)], mode='constant')
-            '''
+        error_tensor_upsampled = np.zeros_like(error_tensor)
 
+        if len(error_tensor.shape) == 4:
+            # Line below will be changed
+            error_tensor = np.pad(error_tensor, [(0,), (0,), (self.stride_shape[0] // 2,)], mode='constant')
+        elif len(error_tensor.shape) == 3:
+            for count, inputt in enumerate(error_tensor):
+                for channel in range(inputt.shape[0]):
+                    y = [0] * (self.stride_shape[0] * (len(inputt[channel]) - 1)) + [0]
+                    y[::self.stride_shape[0]] = inputt[channel]
+                    if channel == 0 and count == 0:
+                        error_tensor_upsampled = np.pad(error_tensor_upsampled, ((0, 0), (0, 0), (0, len(y) - last_shape)), mode='constant', constant_values=0)
+                    error_tensor_upsampled[count][channel] = y
+
+        error_tensor = error_tensor_upsampled
 
         # We stack every kernel via axis 1, creating backward kernels
         backward_kernels = np.stack(self.weights, axis=1)

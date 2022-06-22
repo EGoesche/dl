@@ -555,7 +555,7 @@ class TestConv(unittest.TestCase):
 
     def test_1D_backward_size(self):
         conv = Conv.Conv([2], (3, 3), self.num_kernels)
-        input_tensor = np.array(range(45 * self.batch_size), dtype=np.float)
+        input_tensor = np.array(range(45 * self.batch_size), dtype=float)
         input_tensor = input_tensor.reshape((self.batch_size, 3, 15))
         output_tensor = conv.forward(input_tensor)
         error_tensor = conv.backward(output_tensor)
