@@ -84,7 +84,7 @@ class Conv(Base.BaseLayer):
         # -------------------------------------------------------------------------------------------------------------
         # Do upsampling
         # -------------------------------------------------------------------------------------------------------------
-        if len(self.stride_shape) == 1 and self.stride_shape[0] is not 0:
+        if len(self.stride_shape) == 1 and self.stride_shape[0] != 0:
             # 1D signals
             error_tensor_upsampled = np.zeros(
                 (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2]))
@@ -92,7 +92,7 @@ class Conv(Base.BaseLayer):
             for x in range(error_tensor.shape[2]):
                 error_tensor_upsampled[:, :, x * self.stride_shape[0]] = error_tensor[:, :, x]
             error_tensor = error_tensor_upsampled
-        elif self.stride_shape is not (0, 0):
+        elif self.stride_shape != (0, 0):
             # 2D signals
             error_tensor_upsampled = np.zeros(
                 (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2], self.input_tensor.shape[3]))
@@ -131,6 +131,8 @@ class Conv(Base.BaseLayer):
         # -------------------------------------------------------------------------------------------------------------
         # We stack every kernel via axis 1, creating backward kernels
         backward_kernels = np.stack(self.weights, axis=1)
+        # Filters need to be flipped (rotated 180 degrees)
+        backward_kernels = backward_kernels[::, ::-1]
 
         # Loop over all kernels, convolve with error_tensor to get each channel ol E_(n-1) (Gradient wrt input)
         # Error tensor is also a batch! So loop over them.
