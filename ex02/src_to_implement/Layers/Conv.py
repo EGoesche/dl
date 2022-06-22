@@ -134,7 +134,7 @@ class Conv(Base.BaseLayer):
             for pi_count, image in enumerate(padded_input):
                 for channel in range(self.input_tensor.shape[1]):
                     temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
-                    corr_channel = signal.correlate(image, temp, 'same')
+                    corr_channel = signal.correlate(image, temp, 'valid')
                     corr_channel = corr_channel[self.convolution_shape[0] // 2]
                     self.gradient_weights[et_count][pi_count] = corr_channel
 
