@@ -17,7 +17,7 @@ class ReLU(Base.BaseLayer):
         :return: input tensor for the next layer
         """
         self.input_tensor = input_tensor
-        forward_tensor = np.array([rectified_vector(x) for x in input_tensor])
+        forward_tensor = np.array([rectified_recursive(x) for x in input_tensor])
         return forward_tensor
 
     def backward(self, error_tensor):
@@ -29,7 +29,14 @@ class ReLU(Base.BaseLayer):
         error_tensor[self.input_tensor <= 0] = 0
         return error_tensor
 
+def rectified_recursive(x):
+    if len(x.shape) == 0:
+        return max(0, x)
+    else:
+        result = np.array([rectified_recursive(arr) for arr in x])
+    return result
 
+'''
 def rectified_vector(x):
     """
     Applies the ReLU function on a vector.
@@ -47,3 +54,5 @@ def rectified(x):
     :return: rectified scalar value
     """
     return max(0, x)
+    
+'''
