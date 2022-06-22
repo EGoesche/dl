@@ -81,24 +81,26 @@ class Conv(Base.BaseLayer):
         error_n_minus_one = []
         error_n_minus_one_in_batch = []
 
-        #Upsampling
-        flag = True
-        last_shape = error_tensor.shape[len(error_tensor.shape) - 1]
-        error_tensor_upsampled = np.zeros_like(error_tensor)
+        # Upsampling
+        if len(self.stride_shape) == 1 and self.stride_shape[0] is not 0:
+            # 1D signals
+            error_tensor_upsampled = np.zeros(
+                (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2]))
 
-        if len(error_tensor.shape) == 4:
-            # Line below will be changed
-            error_tensor = np.pad(error_tensor, [(0,), (0,), (self.stride_shape[0] // 2,)], mode='constant')
-        elif len(error_tensor.shape) == 3:
-            for count, inputt in enumerate(error_tensor):
-                for channel in range(inputt.shape[0]):
-                    y = [0] * (self.stride_shape[0] * (len(inputt[channel]) - 1)) + [0]
-                    y[::self.stride_shape[0]] = inputt[channel]
-                    if channel == 0 and count == 0:
-                        error_tensor_upsampled = np.pad(error_tensor_upsampled, ((0, 0), (0, 0), (0, len(y) - last_shape)), mode='constant', constant_values=0)
-                    error_tensor_upsampled[count][channel] = y
+            for x in range(error_tensor.shape[2]):
+                error_tensor_upsampled[:, :, x * self.stride_shape[0]] = error_tensor[:, :, x]
+            error_tensor = error_tensor_upsampled
 
-        error_tensor = error_tensor_upsampled
+        elif self.stride_shape is not (0, 0):
+            # 2D signals
+            error_tensor_upsampled = np.zeros(
+                (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2], self.input_tensor.shape[3]))
+
+            for y in range(error_tensor.shape[2]):
+                for x in range(error_tensor.shape[3]):
+                    error_tensor_upsampled[:, :, y * self.stride_shape[0], x * self.stride_shape[1]] = \
+                        error_tensor[:, :, y, x]
+            error_tensor = error_tensor_upsampled
 
         # We stack every kernel via axis 1, creating backward kernels
         backward_kernels = np.stack(self.weights, axis=1)
