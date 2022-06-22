@@ -81,7 +81,9 @@ class Conv(Base.BaseLayer):
         error_n_minus_one = []
         error_n_minus_one_in_batch = []
 
-        # Upsampling
+        # -------------------------------------------------------------------------------------------------------------
+        # Do upsampling
+        # -------------------------------------------------------------------------------------------------------------
         if len(self.stride_shape) == 1 and self.stride_shape[0] is not 0:
             # 1D signals
             error_tensor_upsampled = np.zeros(
@@ -90,7 +92,6 @@ class Conv(Base.BaseLayer):
             for x in range(error_tensor.shape[2]):
                 error_tensor_upsampled[:, :, x * self.stride_shape[0]] = error_tensor[:, :, x]
             error_tensor = error_tensor_upsampled
-
         elif self.stride_shape is not (0, 0):
             # 2D signals
             error_tensor_upsampled = np.zeros(
@@ -101,8 +102,10 @@ class Conv(Base.BaseLayer):
                     error_tensor_upsampled[:, :, y * self.stride_shape[0], x * self.stride_shape[1]] = \
                         error_tensor[:, :, y, x]
             error_tensor = error_tensor_upsampled
-    # ---------------------------------------------------------------------------------------------------------------
-        # Getting half widths in x and y dimensions (of the kernel) Will be used to compute grad wrt weights
+
+        # -------------------------------------------------------------------------------------------------------------
+        # Create padded version of the input tensor with half the kernels’ width
+        # -------------------------------------------------------------------------------------------------------------
         hwx = self.convolution_shape[1] // 2
         if len(self.convolution_shape) == 3:
             hwy = self.convolution_shape[2] // 2
@@ -123,8 +126,9 @@ class Conv(Base.BaseLayer):
         else:
             print("Something is wrong with the input tensor shapes!")
 
-    # ---------------------------------------------------------------------------------------------------------------
-
+        # -------------------------------------------------------------------------------------------------------------
+        # Calculate gradient w.r.t. to lower layer
+        # -------------------------------------------------------------------------------------------------------------
         # We stack every kernel via axis 1, creating backward kernels
         backward_kernels = np.stack(self.weights, axis=1)
 
@@ -138,22 +142,26 @@ class Conv(Base.BaseLayer):
             error_n_minus_one_in_batch.append(error_n_minus_one)
             error_n_minus_one = []
 
-            # Gradient with respect to weights
+            # ---------------------------------------------------------------------------------------------------------
+            # Calculate gradient w.r.t. to weights
+            # ---------------------------------------------------------------------------------------------------------
             # temp here is just add 1 dimension. So for example from (5,7) to (1,5,7)
             for pi_count, image in enumerate(padded_input):
                 for channel in range(self.input_tensor.shape[1]):
                     if len(single_err_tensor.shape) == 3:
-                        temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
+                        temp = single_err_tensor[channel].reshape(
+                            (1, single_err_tensor[channel].shape[0], single_err_tensor[channel].shape[1]))
                     else:
                         temp = single_err_tensor[channel].reshape((1, single_err_tensor[channel].shape[0]))
                     corr_channel = signal.correlate(image, temp, 'valid')
                     corr_channel = corr_channel[self.convolution_shape[0] // 2]
                     self.gradient_weights[et_count][pi_count] = corr_channel
 
-
         error_n_minus_one_in_batch = np.array(error_n_minus_one_in_batch)
 
+        # -------------------------------------------------------------------------------------------------------------
         # Calculate gradient w.r.t. to bias
+        # -------------------------------------------------------------------------------------------------------------
         # Since every kernel has its own bias, we have to sum kernel-wise over all batches
         if len(self.convolution_shape) == 2:
             # 1D signals
@@ -164,9 +172,9 @@ class Conv(Base.BaseLayer):
             for kernel in range(self.num_kernels):
                 self.gradient_bias[kernel] = np.sum(error_tensor[:, kernel, :, :])
 
-
-
+        # -------------------------------------------------------------------------------------------------------------
         # Update weights and bias
+        # -------------------------------------------------------------------------------------------------------------
         if self._optimizer is not None:
             optimizer_weights = copy.deepcopy(self._optimizer)
             optimizer_bias = self._optimizer
