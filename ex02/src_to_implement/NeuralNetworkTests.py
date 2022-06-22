@@ -532,7 +532,7 @@ class TestConv(unittest.TestCase):
 
     def test_1D_forward_size(self):
         conv = Conv.Conv([2], (3, 3), self.num_kernels)
-        input_tensor = np.array(range(3 * 15 * self.batch_size), dtype=np.float)
+        input_tensor = np.array(range(3 * 15 * self.batch_size), dtype=float)
         input_tensor = input_tensor.reshape((self.batch_size, 3, 15))
         output_tensor = conv.forward(input_tensor)
         self.assertEqual(output_tensor.shape,  (self.batch_size,self.num_kernels, 8))
@@ -586,6 +586,7 @@ class TestConv(unittest.TestCase):
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check(layers, input_tensor, self.label_tensor)
+        print(self.label_tensor.shape)
         self.assertLessEqual(np.sum(difference), 5e-2)
 
     def test_gradient_weights(self):
