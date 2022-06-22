@@ -152,17 +152,17 @@ class Conv(Base.BaseLayer):
             # 1D signals
             self.gradient_weights = np.zeros((self.num_kernels,
                                               self.convolution_shape[0],
-                                              "???"))
+                                              padded_input.shape[2] - error_tensor.shape[2] + 1))
             for kernel in range(self.num_kernels):
                 for channel in range(self.convolution_shape[0]):
                     gradient = signal.correlate(padded_input[:, channel], error_tensor[:, kernel], mode='valid')
                     self.gradient_weights[kernel, channel] += gradient[0]
         else:
             # 2D signals
-            self.gradient_weights = np.zeros((self.num_kernels, 
+            self.gradient_weights = np.zeros((self.num_kernels,
                                               self.convolution_shape[0],
-                                              "???",
-                                              "???"))
+                                              padded_input.shape[2] - error_tensor.shape[2] + 1,
+                                              padded_input.shape[3] - error_tensor.shape[3] + 1))
             for kernel in range(self.num_kernels):
                 for channel in range(self.convolution_shape[0]):
                     gradient = signal.correlate(padded_input[:, channel], error_tensor[:, kernel], mode='valid')
