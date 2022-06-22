@@ -112,7 +112,7 @@ class Conv(Base.BaseLayer):
         y_extra = 0
         if self.convolution_shape[1] % 2 == 0:
             x_extra = -1
-        if self.convolution_shape[2] % 2 == 0:
+        if len(self.convolution_shape) == 3 and self.convolution_shape[2] % 2 == 0:
             y_extra = -1
 
         # Padding the input tensor with half widths
