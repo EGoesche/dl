@@ -107,13 +107,22 @@ class Conv(Base.BaseLayer):
         if len(self.convolution_shape) == 3:
             hwy = self.convolution_shape[2] // 2
 
+        # Check if convolution shapes are even. If so, we'll pad one more at one of the sides
+        x_extra = 0
+        y_extra = 0
+        if self.convolution_shape[1] % 2 == 0:
+            x_extra = -1
+        if self.convolution_shape[2] % 2 == 0:
+            y_extra = -1
+
         # Padding the input tensor with half widths
         if len(self.input_tensor.shape) == 4:
-            padded_input = np.pad(self.input_tensor, ((0, 0), (0, 0), (hwx, hwx), (hwy, hwy)))
+            padded_input = np.pad(self.input_tensor, ((0, 0), (0, 0), (hwx + x_extra, hwx), (hwy + y_extra, hwy)))
         elif len(self.input_tensor.shape) == 3:
             padded_input = np.pad(self.input_tensor, ((0, 0), (0, 0), (hwx, hwx)))
         else:
             print("Something is wrong with the input tensor shapes!")
+
     # ---------------------------------------------------------------------------------------------------------------
 
         # We stack every kernel via axis 1, creating backward kernels
