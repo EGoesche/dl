@@ -8,7 +8,6 @@ class Flatten(Base.BaseLayer):
         super().__init__()
         self.trainable = False
         self.shape = None
-        self.name = "flatten"
 
     def forward(self, input_tensor):
         self.shape = input_tensor[0].shape  # Store this so that we'll know the output shape when doing backward()

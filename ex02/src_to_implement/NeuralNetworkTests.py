@@ -644,7 +644,6 @@ class TestConv(unittest.TestCase):
         input_tensor = np.random.uniform(-1, 1, (self.batch_size, *self.input_shape))
         conv = Conv.Conv((3, 2), self.kernel_shape, self.num_kernels)
         conv.optimizer = Optimizers.Sgd(1)
-        conv.biasOptimizer = Optimizers.Sgd(1)
         conv.initialize(Initializers.He(), Initializers.Constant(0.1))
         # conv.weights = np.random.rand(4, 3, 5, 8)
         # conv.bias = 0.1 * np.ones(4)

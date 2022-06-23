@@ -16,7 +16,6 @@ class Pooling(Base.BaseLayer):
         self.location = None
         self.stride_shape = stride_shape
         self.pooling_shape = pooling_shape
-        self.name = "pooling"
 
     def forward(self, input_tensor):
         self.input_tensor = input_tensor

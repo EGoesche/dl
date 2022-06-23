@@ -20,9 +20,8 @@ class Conv(Base.BaseLayer):
         self._gradient_weights = np.zeros(self.weights.shape)
         self._gradient_bias = np.zeros(self.bias.shape)
         self.input_tensor = None
-        self._optimizer = None  # TODO: Maybe we need two optimizer (weights + bias)
-        self.biasOptimizer = None
-        self.name = "Conv"
+        self._weights_optimizer = None
+        self._bias_optimizer = None
 
     @property
     def gradient_weights(self):
@@ -42,19 +41,12 @@ class Conv(Base.BaseLayer):
 
     @property
     def optimizer(self):
-        return self._optimizer
+        return self._weights_optimizer, self._bias_optimizer
 
     @optimizer.setter
     def optimizer(self, optimizer):
-        self._optimizer = optimizer
-
-    @property
-    def biasOptimizer(self):
-        return self._biasOptimizer
-
-    @biasOptimizer.setter
-    def biasOptimizer(self, optimizer):
-        self._biasOptimizer = optimizer
+        self._weights_optimizer = copy.deepcopy(optimizer)
+        self._bias_optimizer = copy.deepcopy(optimizer)
 
     def forward(self, input_tensor):
         self.input_tensor = input_tensor  # create a copy for backward pass
@@ -194,9 +186,9 @@ class Conv(Base.BaseLayer):
         # -------------------------------------------------------------------------------------------------------------
         # Update weights and bias
         # -------------------------------------------------------------------------------------------------------------
-        if self._optimizer is not None:
-            self.weights = self._optimizer.calculate_update(self.weights, self.gradient_weights)
-            self.bias = self._biasOptimizer.calculate_update(self.bias, self.gradient_bias)
+        if self._weights_optimizer is not None:     # checking one optimizer is enough here
+            self.weights = self._weights_optimizer.calculate_update(self.weights, self.gradient_weights)
+            self.bias = self._bias_optimizer.calculate_update(self.bias, self.gradient_bias)
 
         return error_n_minus_one_in_batch
 
