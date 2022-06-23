@@ -46,7 +46,6 @@ class Conv(Base.BaseLayer):
 
     @optimizer.setter
     def optimizer(self, optimizer):
-        print("--------------------------")
         self._optimizer = optimizer
 
     @property
