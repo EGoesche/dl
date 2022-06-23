@@ -18,6 +18,7 @@ class FullyConnected(Base.BaseLayer):
         self._optimizer = None
         self.weights = np.random.uniform(0, 1, size=(input_size + 1, output_size))  # plus 1 for the bias
         self._gradient_weights = None
+        self.name = "fc"
 
     def initialize(self, weights_initializer, bias_initializer):
         """

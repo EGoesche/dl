@@ -10,6 +10,7 @@ class SoftMax(Base.BaseLayer):
         super().__init__()
         self.max_items = None
         self.pred = None
+        self.name = "softmax"
 
     def forward(self, input_tensor):
         """

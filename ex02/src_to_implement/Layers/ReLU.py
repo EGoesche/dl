@@ -9,6 +9,7 @@ class ReLU(Base.BaseLayer):
         """
         super().__init__()
         self.input_tensor = None
+        self.name = "relu"
 
     def forward(self, input_tensor):
         """

@@ -47,6 +47,8 @@ class NeuralNetwork:
         """
         if layer.trainable:
             layer._optimizer = copy.deepcopy(self.optimizer)    # create independent copy of optimizer object
+            if (layer.name == "Conv"):
+                layer._biasOptimizer = copy.deepcopy(self.optimizer)
             layer.initialize(self.weights_initializer, self.bias_initializer)   # initializes trainable layers
         self.layers.append(layer)
 
