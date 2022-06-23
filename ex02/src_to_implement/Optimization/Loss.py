@@ -30,4 +30,4 @@ class CrossEntropyLoss:
         :param label_tensor: label tensor for the given inputs
         :return:
         """
-        return -1 * (label_tensor / np.array(self.prediction_tensor + np.finfo(float).eps))
+        return -1 * (label_tensor / self.prediction_tensor)
