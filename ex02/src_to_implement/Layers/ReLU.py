@@ -36,23 +36,3 @@ def rectified_recursive(x):
         result = np.array([rectified_recursive(arr) for arr in x])
     return result
 
-'''
-def rectified_vector(x):
-    """
-    Applies the ReLU function on a vector.
-    :param x: input vector
-    :return: rectified vector
-    """
-    result = np.array([rectified(arr) for arr in x])
-    return result
-
-
-def rectified(x):
-    """
-    Applies the ReLU function on a scalar value.
-    :param x: input scalar value
-    :return: rectified scalar value
-    """
-    return max(0, x)
-    
-'''

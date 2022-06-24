@@ -14,7 +14,6 @@ class Flatten(Base.BaseLayer):
         batches = len(input_tensor)
         flatten_outputs = []
 
-        # TODO: if there is enough time, we should try to kick out the loop
         for batch in range(0, batches):
             flatten_outputs.append(np.reshape(input_tensor[batch], -1))
         flatten_outputs = np.array(flatten_outputs)
