@@ -86,7 +86,7 @@ class Conv(Base.BaseLayer):
         # -------------------------------------------------------------------------------------------------------------
         # Do upsampling
         # -------------------------------------------------------------------------------------------------------------
-        if len(self.stride_shape) == 1 and self.stride_shape[0] != 0:
+        if len(self.stride_shape) == 1 and self.stride_shape[0] != 1:
             # 1D signals
             error_tensor_upsampled = np.zeros(
                 (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2]))
@@ -94,7 +94,7 @@ class Conv(Base.BaseLayer):
             for x in range(error_tensor.shape[2]):
                 error_tensor_upsampled[:, :, x * self.stride_shape[0]] = error_tensor[:, :, x]
             error_tensor = error_tensor_upsampled
-        elif self.stride_shape != (0, 0):
+        elif self.stride_shape != (1, 1):
             # 2D signals
             error_tensor_upsampled = np.zeros(
                 (error_tensor.shape[0], self.num_kernels, self.input_tensor.shape[2], self.input_tensor.shape[3]))
