@@ -1,6 +1,6 @@
 import numpy as np
 
-from src_to_implement.Layers import Base
+from Layers import Base
 
 
 class FullyConnected(Base.BaseLayer):

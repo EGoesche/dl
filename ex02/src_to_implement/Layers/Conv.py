@@ -2,7 +2,7 @@ import copy
 import numpy as np
 from scipy import signal
 
-from src_to_implement.Layers import Base
+from Layers import Base
 
 
 class Conv(Base.BaseLayer):
