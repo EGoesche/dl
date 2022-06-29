@@ -15,6 +15,18 @@ class NeuralNetwork:
         self.label_tensor = None  # holds label_tensor for the backward pass
         self.weights_initializer = weights_initializer  # holds the initializer for the weights
         self.bias_initializer = bias_initializer    # holds the initializer for the bias
+        self._phase = None  # True for testing phase, False for training phase
+
+    @property
+    def phase(self):
+        return self._phase
+
+    @phase.setter
+    def phase(self, phase):
+        # set property phase and also phase of all layers
+        self._phase = phase
+        for layer in self.layers:
+            layer.testing_phase = phase
 
     def forward(self):
         """
@@ -56,6 +68,8 @@ class NeuralNetwork:
         :param iterations: number of iterations
         :return:
         """
+        self.phase = False
+
         for i in range(iterations):
             output = self.forward()
             self.loss.append(output)
@@ -67,6 +81,8 @@ class NeuralNetwork:
         :param input_tensor: arbitrary input tensor
         :return: result of the last layer (e.g. estimated class probabilities)
         """
+        self.phase = True
+
         for layer in self.layers:
             input_tensor = layer.forward(input_tensor)
         output = input_tensor   # just to give it a proper name (it's no longer an input)

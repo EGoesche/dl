@@ -1,13 +1,20 @@
 import numpy as np
-import math
 
 
-class Sgd:
+class Optimizer:
+    def __init__(self):
+        self.regularizer = None
+
+    def add_regularizer(self, regularizer):
+        self.regularizer = regularizer
+
+class Sgd(Optimizer):
     def __init__(self, learning_rate):
         """
         Constructor of the SGD optimizer.
         :param learning_rate: sets the learning rate of the optimizer
         """
+        super().__init__()
         self.learning_rate = learning_rate
 
     def calculate_update(self, weight_tensor, gradient_tensor):
@@ -20,8 +27,9 @@ class Sgd:
         return weight_tensor - self.learning_rate * gradient_tensor
 
 
-class SgdWithMomentum:
+class SgdWithMomentum(Optimizer):
     def __init__(self, learning_rate, momentum_rate):
+        super().__init__()
         self.learning_rate = learning_rate
         self.momentum_rate = momentum_rate
         self.change = 0  # Stores the direction we're going. Basically w_(t) - w_(t-1)
@@ -31,8 +39,9 @@ class SgdWithMomentum:
         return weight_tensor + self.change
 
 
-class Adam:
+class Adam(Optimizer):
     def __init__(self, learning_rate, mu, rho):
+        super().__init__()
         self.learning_rate = learning_rate
         self.mu = mu
         self.rho = rho
