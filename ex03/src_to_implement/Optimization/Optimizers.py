@@ -3,10 +3,14 @@ import numpy as np
 
 class Optimizer:
     def __init__(self):
+        """
+        Constructor for the base optimizer class.
+        """
         self.regularizer = None
 
     def add_regularizer(self, regularizer):
         self.regularizer = regularizer
+
 
 class Sgd(Optimizer):
     def __init__(self, learning_rate):
@@ -19,12 +23,16 @@ class Sgd(Optimizer):
 
     def calculate_update(self, weight_tensor, gradient_tensor):
         """
-        Calculates the update of a given weight tensor w.r.t. to the gradient tensor.
+        Calculates the update of a given weight tensor w.r.t. to the gradient tensor and if available with regularizer.
         :param weight_tensor: weight tensor to be updated
         :param gradient_tensor: gradient tensor for the given weight tensor
         :return: updated weight tensor
         """
-        return weight_tensor - self.learning_rate * gradient_tensor
+        if self.regularizer:
+            return weight_tensor - self.learning_rate * self.regularizer.calculate_gradient(weight_tensor) - \
+                   self.learning_rate * gradient_tensor
+        else:
+            return weight_tensor - self.learning_rate * gradient_tensor
 
 
 class SgdWithMomentum(Optimizer):
@@ -36,7 +44,10 @@ class SgdWithMomentum(Optimizer):
 
     def calculate_update(self, weight_tensor, gradient_tensor):
         self.change = self.momentum_rate * self.change - self.learning_rate * gradient_tensor
-        return weight_tensor + self.change
+        if self.regularizer:
+            weight_tensor -= self.learning_rate * self.regularizer.calculate_gradient(weight_tensor)
+        else:
+            return weight_tensor + self.change
 
 
 class Adam(Optimizer):
@@ -59,4 +70,8 @@ class Adam(Optimizer):
         r_k_corr = self.r_k / (1 - self.rho ** self.iter)
         self.iter += 1
 
-        return weight_tensor - self.learning_rate * (v_k_corr / (np.sqrt(r_k_corr) + self.epsilon))
+        if self.regularizer:
+            return weight_tensor - self.learning_rate * self.regularizer.calculate_gradient(weight_tensor) - \
+                   self.learning_rate * (v_k_corr / (np.sqrt(r_k_corr) + self.epsilon))
+        else:
+            return weight_tensor - self.learning_rate * (v_k_corr / (np.sqrt(r_k_corr) + self.epsilon))

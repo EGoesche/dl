@@ -35,12 +35,17 @@ class NeuralNetwork:
         :return: loss
         """
         input_tensor, self.label_tensor = self.data_layer.next()
+        regularization_loss = 0
         for layer in self.layers:
             # Note: input_tensor is input for the next layer but also output of current layer
             input_tensor = layer.forward(input_tensor)
-        output = self.loss_layer.forward(input_tensor, self.label_tensor)
 
-        return output
+            if layer.regularizer:
+                regularization_loss += layer.norm(layer.weights)
+
+        loss = self.loss_layer.forward(input_tensor, self.label_tensor)
+
+        return loss + regularization_loss
 
     def backward(self):
         """
