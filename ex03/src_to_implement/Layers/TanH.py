@@ -17,7 +17,7 @@ class TanH(Base.BaseLayer):
 
 
     def backward(self, error_tensor):
-        error_tensor * (1-(self.activation*self.activation))
+        return error_tensor * (1-(self.activation*self.activation))
 
     def tanh(self, x):
         return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
