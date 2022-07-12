@@ -29,10 +29,10 @@ class ReLU(Base.BaseLayer):
         error_tensor[self.input_tensor <= 0] = 0
         return error_tensor
 
+
 def rectified_recursive(x):
     if len(x.shape) == 0:
         return max(0, x)
     else:
         result = np.array([rectified_recursive(arr) for arr in x])
     return result
-

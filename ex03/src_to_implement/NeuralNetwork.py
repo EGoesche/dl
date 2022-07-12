@@ -40,8 +40,8 @@ class NeuralNetwork:
             # Note: input_tensor is input for the next layer but also output of current layer
             input_tensor = layer.forward(input_tensor)
 
-            if layer.regularizer:
-                regularization_loss += layer.norm(layer.weights)
+            if self.optimizer.regularizer and layer.trainable:
+                regularization_loss += self.optimizer.regularizer.norm(layer.weights)
 
         loss = self.loss_layer.forward(input_tensor, self.label_tensor)
 

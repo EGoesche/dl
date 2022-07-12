@@ -13,7 +13,8 @@ class L2_Regularizer:
         return self.alpha * weights
 
     def norm(self, weights):
-        return self.alpha * np.square(np.linalg.norm(weights, 'fro'))
+        # should be with parameter 'fro' but works only like that :c
+        return self.alpha * np.square(np.linalg.norm(weights))
 
 
 class L1_Regularizer:
