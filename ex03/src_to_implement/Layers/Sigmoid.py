@@ -12,9 +12,8 @@ class Sigmoid(Base.BaseLayer):
         self.activation = None
 
     def forward(self, input_tensor):
-        self.activation = 1/(1 + np.exp(-input_tensor))
+        self.activation = 1 / (1 + np.exp(-input_tensor))
         return copy.deepcopy(self.activation)
 
-
     def backward(self, error_tensor):
-        return error_tensor * (self.activation * (1-self.activation))
+        return error_tensor * (self.activation * (1 - self.activation))

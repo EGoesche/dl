@@ -15,9 +15,8 @@ class TanH(Base.BaseLayer):
         self.activation = self.tanh(input_tensor)
         return copy.deepcopy(self.activation)
 
-
     def backward(self, error_tensor):
-        return error_tensor * (1-(self.activation*self.activation))
+        return error_tensor * (1 - (self.activation * self.activation))
 
     def tanh(self, x):
         return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
