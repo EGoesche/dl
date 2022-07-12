@@ -1,5 +1,5 @@
 import numpy as np
-from Layers import Base
+from Layers import Base, FullyConnected
 import copy
 
 
@@ -16,7 +16,12 @@ class RNN(Base.BaseLayer):
         self._memorize = False
 
         self._gradient_weights = np.zeros(self.weights.shape)
-        self._weights = None # This is probably wrong, come back here
+
+        self.fc_hidden = FullyConnected.FullyConnected(self.input_size + self.hidden_size, self.hidden_size)
+        self.fc_output = FullyConnected.FullyConnected(self.hidden_size, self.output_size)
+        self._weights = self.fc_hidden.weights
+        self._weights_output = self.fc_output.weights
+
         self._weights_optimizer = None
         self._bias_optimizer = None
 
@@ -30,19 +35,27 @@ class RNN(Base.BaseLayer):
 
     @property
     def weights(self):
-        return self._weights
+        return self.fc_hidden.weights
 
     @weights.setter
-    def weights(self, weights):
-        self._weights = weights
+    def weights(self, weights_hidden_state):
+        self.fc_hidden.weights = weights_hidden_state
+
+    @property
+    def weights_output(self):
+        return self._weights_output
+
+    @weights_output.setter
+    def weights_output(self, weights_output):
+        self._weights_output = weights_output
 
     @property
     def gradient_weights(self):
         return self._gradient_weights
 
     @gradient_weights.setter
-    def gradient_weights(self, weights):
-        self._gradient_weights = weights
+    def gradient_weights(self, gradient_weights):
+        self._gradient_weights = gradient_weights
 
     @property
     def optimizer(self):
@@ -52,7 +65,6 @@ class RNN(Base.BaseLayer):
     def optimizer(self, optimizer):
         self._weights_optimizer = copy.deepcopy(optimizer)
         self._bias_optimizer = copy.deepcopy(optimizer)
-
 
     def forward(self, input_tensor):
         pass
