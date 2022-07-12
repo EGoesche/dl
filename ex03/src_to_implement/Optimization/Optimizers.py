@@ -44,10 +44,11 @@ class SgdWithMomentum(Optimizer):
 
     def calculate_update(self, weight_tensor, gradient_tensor):
         self.change = self.momentum_rate * self.change - self.learning_rate * gradient_tensor
+
         if self.regularizer:
             weight_tensor -= self.learning_rate * self.regularizer.calculate_gradient(weight_tensor)
-        else:
-            return weight_tensor + self.change
+
+        return weight_tensor + self.change
 
 
 class Adam(Optimizer):
