@@ -105,22 +105,27 @@ class RNN(Base.BaseLayer):
 
 
     def backward(self, error_tensor):
+        grad_by_sum = 0; grad_w_hy_sum = 0; grad_h_t_sum = 0; grad_bh_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
+
         for time in range(len(error_tensor)-1, -1, -1):
-            grad_b_y  = Sigmoid.Sigmoid().backward(self.o_t_values[time])  #grad_o_t in other words
-            grad_w_hy = grad_b_y * self.hidden_values[time]
+            grad_by  = Sigmoid.Sigmoid().backward(self.o_t_values[time])  #grad_o_t in other words
+            grad_w_hy = grad_by * self.hidden_values[time]
             input_hidden_concatenated = np.array([np.append(self.input_tensor[time + 1], self.hidden_state)]) # again, order???
 
             if time == len(error_tensor)-1:
-                grad_h_t = self.fc_output.weights.transpose() * grad_b_y
+                grad_h_t = self.fc_output.weights.transpose() * grad_by
             elif time == 0:
                 grad_h_t = self.fc_hidden.weights.transpose() * TanH.TanH().backward(input_hidden_concatenated) * grad_h_t
             else:
                 grad_h_t = self.fc_hidden.weights.transpose() * TanH.TanH().backward(
-                    input_hidden_concatenated) * grad_h_t + self.fc_output.weights.transpose() * grad_b_y
+                    input_hidden_concatenated) * grad_h_t + self.fc_output.weights.transpose() * grad_by
 
             grad_bh = grad_h_t * TanH.TanH().backward(self.u_t_values[time])
             grad_hh = grad_bh * self.hidden_values[time-1].transpose()
             grad_xh = grad_bh * self.input_tensor[time]
+
+            grad_by_sum += grad_by; grad_w_hy_sum += grad_w_hy; grad_h_t_sum += grad_h_t
+            grad_bh_sum += grad_bh; grad_hh_sum += grad_hh; grad_xh_sum += grad_xh
 
 
 
