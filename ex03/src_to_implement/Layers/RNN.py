@@ -20,6 +20,7 @@ class RNN(Base.BaseLayer):
         self.fc_output = FullyConnected.FullyConnected(self.hidden_size, self.output_size)
         self.last_input = None
         self.last_hidden = None
+        self.last_o_t = None
         self._weights = self.fc_hidden.weights
         self._weights_output = self.fc_output.weights
         self._gradient_weights = np.zeros(self.weights.shape)
@@ -91,21 +92,22 @@ class RNN(Base.BaseLayer):
             # Saving the input at the last time (to use it in the backward pass)
             if time == len(input_tensor) - 1:
                 self.last_input = input_tensor[time]
+                self.last_o_t = o_t
 
         return output
 
 
-def backward(self, error_tensor):
-    for time in range(len(error_tensor)-1, -1, -1):
+    def backward(self, error_tensor):
+        for time in range(len(error_tensor)-1, -1, -1):
+            grad_b_y  = Sigmoid.Sigmoid().backward(self.last_o_t)
+            grad_w_hy = grad_b_y * self.last_hidden
+
+
+
+
+    def initialize(self, weights_initializer, bias_initializer):
         pass
-        #w_hy =
 
 
-
-
-def initialize(self, weights_initializer, bias_initializer):
-    pass
-
-
-def calculate_regularization_loss(self):
-    pass
+    def calculate_regularization_loss(self):
+        pass
