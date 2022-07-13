@@ -18,6 +18,8 @@ class RNN(Base.BaseLayer):
 
         self.fc_hidden = FullyConnected.FullyConnected(self.input_size + self.hidden_size, self.hidden_size)
         self.fc_output = FullyConnected.FullyConnected(self.hidden_size, self.output_size)
+        self.last_input = None
+        self.last_hidden = None
         self._weights = self.fc_hidden.weights
         self._weights_output = self.fc_output.weights
         self._gradient_weights = np.zeros(self.weights.shape)
@@ -74,23 +76,31 @@ class RNN(Base.BaseLayer):
 
         for time in range(len(input_tensor)):
             input_hidden_concatenated = np.array([np.append(input_tensor[time], self.hidden_state)])
-            input_hidden_concatenated = self.fc_hidden.forward(input_hidden_concatenated)
+            input_hidden_concatenated = self.fc_hidden.forward(input_hidden_concatenated)  #u_t
 
-            self.hidden_state = TanH.TanH().forward(input_hidden_concatenated)
+            self.hidden_state = TanH.TanH().forward(input_hidden_concatenated) #h_t
 
-            dot_product_hidden_state_and_weights_fc_output = self.fc_output.forward(self.hidden_state)
-            current_output = Sigmoid.Sigmoid().forward(dot_product_hidden_state_and_weights_fc_output)
+            o_t = self.fc_output.forward(self.hidden_state) #W_hy * h_t + b_y
+            current_output = Sigmoid.Sigmoid().forward(o_t) # y_t
 
             if output is not None:
                 output = np.concatenate((output, current_output))
             else:
                 output = current_output
 
+            # Saving the input at the last time (to use it in the backward pass)
+            if time == len(input_tensor) - 1:
+                self.last_input = input_tensor[time]
+
         return output
 
 
 def backward(self, error_tensor):
-    pass
+    for time in range(len(error_tensor)-1, -1, -1):
+        pass
+        #w_hy =
+
+
 
 
 def initialize(self, weights_initializer, bias_initializer):
