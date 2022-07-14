@@ -102,7 +102,7 @@ class RNN(Base.BaseLayer):
         return output
 
     def backward(self, error_tensor):
-        grad_by_sum = 0; grad_w_hy_sum = 0; grad_h_t_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
+        grad_by_sum = 0; grad_w_hy_sum = 0; grad_ht_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
 
         for time in range(len(error_tensor)-1, -1, -1):
             grad_ot  = self.fc_output.backward(self.sigmoid.backward(error_tensor[time]))
@@ -110,18 +110,19 @@ class RNN(Base.BaseLayer):
             grad_w_hy = grad_ot * self.hidden_values[time].transpose()
 
             if time == len(error_tensor)-1:
-                grad_h_t = grad_ot
+                grad_ht = 0
             else:
                 input_hidden_concatenated = np.array([np.append(self.input_tensor[time + 1], self.hidden_values[time])])
-                grad_h_t = self.fc_hidden.weights.transpose() * self.tanh.backward(
-                    input_hidden_concatenated) * grad_h_t + self.fc_output.weights.transpose() * grad_ot
+                grad_ht = self.fc_hidden.weights.transpose() * self.tanh.backward(
+                    input_hidden_concatenated) * grad_ht + self.fc_output.weights.transpose() * grad_ot
+            grad_middle = grad_ht + grad_ot # after the conjunction of two paths
 
 
-            grad_ut = self.fc_hidden.backward(self.tanh.backward(grad_h_t))
+            grad_ut = self.fc_hidden.backward(self.tanh.backward(grad_middle))
             grad_hh = grad_ut * self.hidden_values[time-1].transpose()
             grad_xh = grad_ut * self.input_tensor[time].transpose()
 
-            grad_by_sum += grad_by; grad_w_hy_sum += grad_w_hy; grad_h_t_sum += grad_h_t
+            grad_by_sum += grad_by; grad_w_hy_sum += grad_w_hy; grad_ht_sum += grad_ht
             grad_hh_sum += grad_hh; grad_xh_sum += grad_xh
 
         return error_tensor * grad_xh_sum #Think about this. I chose this gradient because it's the only one includes input
