@@ -26,8 +26,8 @@ class RNN(Base.BaseLayer):
         self._weights_output = self.fc_output.weights
         self._gradient_weights = np.zeros(self.weights.shape)
 
-        self._weights_optimizer = None
-        self._bias_optimizer = None
+        self._hidden_optimizer = None
+        self._output_optimizer = None
         self.sigmoid = Sigmoid.Sigmoid()
         self.tanh = TanH.TanH()
 
@@ -65,12 +65,12 @@ class RNN(Base.BaseLayer):
 
     @property
     def optimizer(self):
-        return self._weights_optimizer, self._bias_optimizer
+        return self._hidden_optimizer, self._output_optimizer
 
     @optimizer.setter
     def optimizer(self, optimizer):
-        self._weights_optimizer = copy.deepcopy(optimizer)
-        self._bias_optimizer = copy.deepcopy(optimizer)
+        self._hidden_optimizer = copy.deepcopy(optimizer)
+        self._output_optimizer = copy.deepcopy(optimizer)
 
     def forward(self, input_tensor):
         output = None
@@ -101,7 +101,6 @@ class RNN(Base.BaseLayer):
         self.u_t_values = np.array(self.u_t_values)
         return output
 
-
     def backward(self, error_tensor):
         grad_by_sum = 0; grad_w_hy_sum = 0; grad_h_t_sum = 0; grad_bh_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
 
@@ -127,11 +126,11 @@ class RNN(Base.BaseLayer):
 
         return error_tensor * grad_xh_sum #Think about this. I chose this gradient because it's the only one includes input
 
-
-
     def initialize(self, weights_initializer, bias_initializer):
-        pass
-
+        self.fc_hidden.initialize(weights_initializer, bias_initializer)
+        self.fc_output.initialize(weights_initializer, bias_initializer)
 
     def calculate_regularization_loss(self):
-        pass
+        return self._hidden_optimizer.regulizer.norm(self.weights) + \
+               self._output_optimizer.regularizer.norm(self.weights_output)
+
