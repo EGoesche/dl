@@ -80,7 +80,7 @@ class RNN(Base.BaseLayer):
             self.hidden_state = np.zeros(self.hidden_size)
 
         for time in range(len(input_tensor)):
-            input_hidden_concatenated = np.array([np.append(input_tensor[time], self.hidden_state)])  #Is order correct? Pdf says the reverse.
+            input_hidden_concatenated = np.array([np.append(input_tensor[time], self.hidden_state)])
             input_hidden_concatenated = self.fc_hidden.forward(input_hidden_concatenated)  #u_t
             self.u_t_values += list(input_hidden_concatenated)
 
@@ -102,27 +102,27 @@ class RNN(Base.BaseLayer):
         return output
 
     def backward(self, error_tensor):
-        grad_by_sum = 0; grad_w_hy_sum = 0; grad_h_t_sum = 0; grad_bh_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
+        grad_by_sum = 0; grad_w_hy_sum = 0; grad_h_t_sum = 0; grad_hh_sum = 0; grad_xh_sum = 0
 
         for time in range(len(error_tensor)-1, -1, -1):
-            grad_by  = self.sigmoid.backward(self.o_t_values[time])  #grad_o_t in other words
-            grad_w_hy = grad_by * self.hidden_values[time].transpose()
-            input_hidden_concatenated = np.array([np.append(self.input_tensor[time + 1], self.hidden_state)]) # again, order???
+            grad_ot  = self.fc_output.backward(self.sigmoid.backward(error_tensor[time]))
+            grad_by = grad_ot
+            grad_w_hy = grad_ot * self.hidden_values[time].transpose()
 
             if time == len(error_tensor)-1:
-                grad_h_t = self.fc_output.weights.transpose() * grad_by
-            elif time == 0:
-                grad_h_t = self.fc_hidden.weights.transpose() * self.tanh.backward(input_hidden_concatenated) * grad_h_t
+                grad_h_t = grad_ot
             else:
+                input_hidden_concatenated = np.array([np.append(self.input_tensor[time + 1], self.hidden_values[time])])
                 grad_h_t = self.fc_hidden.weights.transpose() * self.tanh.backward(
-                    input_hidden_concatenated) * grad_h_t + self.fc_output.weights.transpose() * grad_by
+                    input_hidden_concatenated) * grad_h_t + self.fc_output.weights.transpose() * grad_ot
 
-            grad_bh = grad_h_t * self.tanh.backward(self.u_t_values[time])
-            grad_hh = grad_bh * self.hidden_values[time-1].transpose()
-            grad_xh = grad_bh * self.input_tensor[time]
+
+            grad_ut = self.fc_hidden.backward(self.tanh.backward(grad_h_t))
+            grad_hh = grad_ut * self.hidden_values[time-1].transpose()
+            grad_xh = grad_ut * self.input_tensor[time].transpose()
 
             grad_by_sum += grad_by; grad_w_hy_sum += grad_w_hy; grad_h_t_sum += grad_h_t
-            grad_bh_sum += grad_bh; grad_hh_sum += grad_hh; grad_xh_sum += grad_xh
+            grad_hh_sum += grad_hh; grad_xh_sum += grad_xh
 
         return error_tensor * grad_xh_sum #Think about this. I chose this gradient because it's the only one includes input
 
