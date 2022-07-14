@@ -1,6 +1,5 @@
-import numpy as np
-
 from Layers import Base
+import numpy as np
 
 
 class FullyConnected(Base.BaseLayer):
@@ -33,36 +32,6 @@ class FullyConnected(Base.BaseLayer):
         # Access last row (bias)
         self.weights[-1] = bias_initializer.initialize((1, self.output_size), self.input_size, self.output_size)
 
-    def forward(self, input_tensor):
-        """
-        The forward pass adds a column of ones for the bias to the input and performs a matrix mul with the weights.
-        :param input_tensor: input which will get multiplied with the weights
-        :return: input tensor for the next layer
-        """
-        input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]
-        self.input_tensor = input_tensor  # create a copy for backward pass
-        # On slides, the order is reversed. It's weights * input_tensor (not good).
-        return np.matmul(input_tensor, self.weights)
-
-    def backward(self, error_tensor):
-        """
-        The backward pass calculates the gradient w.r.t. to the weights to perform an update of the weights.
-        :param error_tensor: error tensor for current layer
-        :return: error tensor for the previous layer
-        """
-        # Note: on slides, the order is reversed. It's error_tensor * input_tensor.T
-        self._gradient_weights = np.matmul(self.input_tensor.T, error_tensor)
-
-        # Get unupdated weights without the weights for the bias
-        unupdated_weights = np.delete(self.weights, len(self.weights) - 1, axis=0)
-
-        # Update weights
-        if self._optimizer is not None:
-            self.weights = self._optimizer.calculate_update(self.weights, self._gradient_weights)
-
-        # Return error_tensor for the previous layer
-        return np.matmul(error_tensor, unupdated_weights.T)
-
     @property
     def optimizer(self):
         return self._optimizer
@@ -78,3 +47,44 @@ class FullyConnected(Base.BaseLayer):
     @gradient_weights.setter
     def gradient_weights(self, gradient_weights):
         self._gradient_weights = gradient_weights
+
+    def forward(self, input_tensor):
+        """
+        The forward pass adds a column of ones for the bias to the input and performs a matrix mul with the weights.
+        :param input_tensor: input which will get multiplied with the weights
+        :return: input tensor for the next layer
+        """
+        self.input_tensor = input_tensor  # create a copy for backward pass
+
+        if len(self.input_tensor) >= 2:
+            # Add ones for bias
+            self.input_tensor = np.ones((len(input_tensor), self.input_size + 1))
+            self.input_tensor[:, :-1] = input_tensor
+            # Calculate forward pass
+            return np.matmul(self.input_tensor, self.weights)
+        else:
+            # Add ones for bias
+            self.input_tensor = np.c_[input_tensor, np.ones(len(input_tensor))]
+            # Calculate forward pass
+            return np.array(np.matmul(np.asmatrix(self.input_tensor), self.weights))[0]
+
+    def backward(self, error_tensor):
+        """
+        The backward pass calculates the gradient w.r.t. to the weights to perform an update of the weights.
+        :param error_tensor: error tensor for current layer
+        :return: error tensor for the previous layer
+        """
+        if (np.asmatrix(self.input_tensor).shape[0]) >= 2:
+            self.gradient_weights = np.matmul(self.input_tensor.T, error_tensor)
+        else:
+            self.gradient_weights = np.matmul(np.asmatrix(self.input_tensor).T, np.asmatrix(error_tensor))
+
+        # Get unupdated weights without the weights for the bias
+        unupdated_weights = np.delete(self.weights, len(self.weights) - 1, axis=0)
+
+        # Update weights
+        if self._optimizer is not None:
+            self.weights = self._optimizer.calculate_update(self.weights, self.gradient_weights)
+
+        # Return error_tensor for the previous layer
+        return np.matmul(error_tensor, unupdated_weights.T)
