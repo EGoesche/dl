@@ -75,9 +75,8 @@ class RNN(Base.BaseLayer):
         self.hidden_values = np.zeros((input_tensor.shape[0], self.hidden_size))
         self.input_hidden = np.zeros((input_tensor.shape[0], self.input_size + self.hidden_size + 1))
         self.input_out = np.zeros((input_tensor.shape[0], self.hidden_size + 1))
-        self.sigmoids = np.empty((input_tensor.shape[0]), dtype=Sigmoid.Sigmoid)
+        self.sigmoids = np.zeros((input_tensor.shape[0]), dtype=Sigmoid.Sigmoid)
         self.tanhs = np.empty((input_tensor.shape[0]), dtype=TanH.TanH)
-
 
         if not self.memorize:
             self.hidden_state = np.zeros(self.hidden_size)
@@ -93,7 +92,7 @@ class RNN(Base.BaseLayer):
             # Apply TanH
             tanh = TanH.TanH()
             self.hidden_state = tanh.forward(input_hidden_concatenated)
-            self.tanhs[time] = tanh
+
             self.hidden_values[time] = self.hidden_state
 
             # Propagate through output fc
@@ -104,6 +103,8 @@ class RNN(Base.BaseLayer):
             # Apply Sigmoid
             sigmoid = Sigmoid.Sigmoid()
             output[time] = sigmoid.forward(o_t)
+
+            self.tanhs[time] = tanh
             self.sigmoids[time] = sigmoid
 
         return output
