@@ -1,6 +1,10 @@
 # IDEA
 .idea/
 
+# Dataset
+ex04/src_to_implement/images
+ex04/src_to_implement/data.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
