@@ -20,15 +20,16 @@ class ResNet(nn.Module):
             ResBlock(256, 512, stride=2),
         )
 
-        self.gap = nn.AdaptiveAvgPool2d(1)  # may be wrong
+        self.gap = nn.AdaptiveAvgPool2d(output_size=1)  # may be wrong
         self.fc = nn.Linear(512, 2)
         self.sigmoid = nn.Sigmoid()
+        self.flatten = nn.Flatten()
 
     def forward(self, input):
         layer0_output   = self.layer0(input)
         layer1_output   = self.layer1(layer0_output)
         gap_output      = self.gap(layer1_output)
-        fl_output       = torch.flatten(gap_output)
+        fl_output       = self.flatten(gap_output)
         fc_output       = self.fc(fl_output)
         output          = self.sigmoid(fc_output)
 
