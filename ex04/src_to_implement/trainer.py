@@ -85,6 +85,31 @@ class Trainer:
         # transfer the batch to "cuda()" -> the gpu if a gpu is given
         # perform a training step
         # calculate the average loss for the epoch and return it
+
+        self._model.train(True)
+        running_loss = 0.
+        last_loss = 0.
+        # If you want, intra-epoch reportings, alter the for loop with enumerate and print it every x input
+        for data in self._train_dl:
+            if self._cuda:  # or -> if t.cuda.is_available()
+                data = data.to('cuda')
+            # Every data instance is an input + label pair
+            inputs, labels = data
+
+            # Compute the loss and its gradients
+            loss = self.train_step(inputs, labels)
+
+            # Gather data and report
+            running_loss += loss.item()
+
+        self._model.train(False) # This may not be needed. But in general, if training is over, this is done.
+        last_loss = running_loss / len(self._train_dl)  #Average loss for one epoch
+        return last_loss
+
+
+
+
+
         #TODO
     
     def val_test(self):
