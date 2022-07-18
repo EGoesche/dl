@@ -21,6 +21,7 @@ class Trainer:
         self._cuda = cuda
 
         self._early_stopping_patience = early_stopping_patience
+        self.min_valid_loss = float('inf') # our addition
 
         if cuda:
             self._model = model.cuda()
@@ -46,7 +47,7 @@ class Trainer:
               do_constant_folding=True,  # whether to execute constant folding for optimization
               input_names = ['input'],   # the model's input names
               output_names = ['output'], # the model's output names
-              dynamic_axes={'input' : {0 : 'batch_size'},    # variable lenght axes
+              dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
                             'output' : {0 : 'batch_size'}})
             
     def train_step(self, x, y):
@@ -93,22 +94,22 @@ class Trainer:
         self._model.train(True)
         running_loss = 0.
         last_loss = 0.
-        # If you want, intra-epoch reportings, alter the for loop with enumerate and print it every x input
-        for data in self._train_dl:
+        # If you want, intra-epoch reporting, alter the for loop with enumerate and print it every x input
+        for pair in self._train_dl:  # data-label pair
             if self._cuda:  # or -> if t.cuda.is_available()
-                data = data.to('cuda')
+                pair = pair.to('cuda')
             # Every data instance is an input + label pair
-            inputs, labels = data
+            input, label = pair
 
             # Compute the loss and its gradients
-            loss = self.train_step(inputs, labels)
+            loss = self.train_step(input, label)
 
             # Gather data and report
             running_loss += loss.item()
 
         self._model.train(False) # This may not be needed. But in general, if training is over, this is done.
-        last_loss = running_loss / len(self._train_dl)  #Average loss for one epoch
-        return last_loss
+        train_loss = running_loss / len(self._train_dl)  #Average loss for one epoch
+        return train_loss
     
     def val_test(self):
         # set eval mode. Some layers have different behaviors during training and testing (for example: Dropout, BatchNorm, etc.). To handle those properly, you'd want to call model.eval()
@@ -119,23 +120,60 @@ class Trainer:
         # save the predictions and the labels for each batch
         # calculate the average loss and average metrics of your choice. You might want to calculate these metrics in designated functions
         # return the loss and print the calculated metrics
-        #TODO
-        
+        #
+        self._model.eval()
+        running_loss = 0.
+        with t.no_grad():
+            for pair in self._val_test_dl:  # data-label pair
+                if self._cuda:  # or -> if t.cuda.is_available()
+                    pair = pair.to('cuda')
+                input, label = pair
+                loss = self.val_test_step(input, label)
+                running_loss += loss.item()
+            valid_loss = running_loss / len(self._val_test_dl)
+            print(f'Validation Loss: {valid_loss}')
+            if valid_loss < self.min_valid_loss:
+                print(f'Validation Loss Decreased({self.min_valid_loss:.6f}--->{valid_loss:.6f})')
+                self.min_valid_loss = valid_loss
+
+            return valid_loss
     
     def fit(self, epochs=-1):
         assert self._early_stopping_patience > 0 or epochs > 0
         # create a list for the train and validation losses, and create a counter for the epoch 
-        #TODO
-        
+        train_losses = []
+        valid_losses = []
+        epoch_counter = 0
+
+        # Increases by 1 if there's no progress after an epoch and a subsequent validation loss.
+        # Resets to 0 when progress happens
+        patience_counter = 0
+
         while True:
       
             # stop by epoch number
-            # train for a epoch and then calculate the loss and metrics on the validation set
+            # train for an epoch and then calculate the loss and metrics on the validation set
             # append the losses to the respective lists
             # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
             # check whether early stopping should be performed using the early stopping criterion and stop if so
             # return the losses for both training and validation
-        #TODO
+            train_losses += self.train_epoch()
+            valid_losses += self.val_test()
+
+            # Save the model. You may want to do that every X epochs rather than after every epoch
+            self.save_checkpoint(epochs)
+
+            # Update patience counter according to the latest validation loss
+            if valid_losses[-1] >= self.min_valid_loss:
+                patience_counter += 1
+            else:
+                patience_counter = 0
+
+            # Check if our patience is over or epochs are done
+            if self._early_stopping_patience == patience_counter or epoch_counter == epochs:
+                break
+            epoch_counter += 1
+        return train_losses, valid_losses
                     
         
         
