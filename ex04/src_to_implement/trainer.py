@@ -57,7 +57,18 @@ class Trainer:
         # -compute gradient by backward propagation
         # -update weights
         # -return the loss
-        #TODO
+
+        # Implementations
+        # zero the parameter gradients
+        self._optim.zero_grad()
+
+        # forward + backward + optimize
+        output = self._model(x)
+        loss = self._crit(output, y)
+        loss.backward()
+        self._optim.step()
+        return loss
+
         
         
     
