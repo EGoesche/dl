@@ -20,6 +20,5 @@ class Dropout(Base.BaseLayer):
         if self.testing_phase:
             return error_tensor
         else:
-            # TODO: Maybe we have to remove the last multiplicand
             return self.drop_pattern * error_tensor * (1 / self.probability)
 
