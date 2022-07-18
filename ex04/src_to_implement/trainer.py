@@ -77,7 +77,11 @@ class Trainer:
         # predict
         # propagate through the network and calculate the loss and predictions
         # return the loss and the predictions
-        #TODO
+
+        self._model.eval()
+        output = self._model(x)
+        loss = self._crit(output, y)
+        return loss
         
     def train_epoch(self):
         # set training mode
@@ -105,12 +109,6 @@ class Trainer:
         self._model.train(False) # This may not be needed. But in general, if training is over, this is done.
         last_loss = running_loss / len(self._train_dl)  #Average loss for one epoch
         return last_loss
-
-
-
-
-
-        #TODO
     
     def val_test(self):
         # set eval mode. Some layers have different behaviors during training and testing (for example: Dropout, BatchNorm, etc.). To handle those properly, you'd want to call model.eval()
