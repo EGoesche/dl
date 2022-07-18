@@ -1,7 +1,8 @@
+import torch
 import torch.nn as nn
 
 class ResNet(nn.Module):
-    def __init__(self, resblock):
+    def __init__(self):
         super().__init__()
         self.training = True
 
@@ -13,23 +14,25 @@ class ResNet(nn.Module):
         )
 
         self.layer1 = nn.Sequential(
-            resblock(64, 64, stride=1),
-            resblock(64, 128, stride=2),
-            resblock(128, 256, stride=2),
-            resblock(256, 512, stride=2),
+            ResBlock(64, 64, stride=1),
+            ResBlock(64, 128, stride=2),
+            ResBlock(128, 256, stride=2),
+            ResBlock(256, 512, stride=2),
         )
 
         self.gap = nn.AdaptiveAvgPool2d(1)  # may be wrong
         self.fc = nn.Linear(512, 2)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
         layer0_output   = self.layer0(input)
         layer1_output   = self.layer1(layer0_output)
-        gap_output      = self.gap(input)
-        fl_output       = nn.flatten(gap_output)
+        gap_output      = self.gap(layer1_output)
+        fl_output       = torch.flatten(gap_output)
         fc_output       = self.fc(fl_output)
+        output          = self.sigmoid(fc_output)
 
-        return nn.Sigmoid(fc_output)
+        return output
 
 
 class ResBlock(nn.Module):
@@ -37,13 +40,14 @@ class ResBlock(nn.Module):
         super().__init__()
         self.training = True
 
-        self.shortcut = nn.Sequential()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3)
+        self.shortcut = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride),
+            nn.BatchNorm2d(out_channels)
+        )
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=True)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels)
-        self.outer_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride) # may be wrong.
-        self.outer_bn = nn.BatchNorm2d(out_channels)
 
     def forward(self, input):
         shortcut            = self.shortcut(input)
@@ -55,8 +59,4 @@ class ResBlock(nn.Module):
         sec_bn_output       += shortcut   # Skip connection is added to the output of batch norm 2
         sec_relu_output     = nn.ReLU()(sec_bn_output)
 
-        outer_conv_output   = self.outer_conv(input)
-        outer_bn_output     = self.outer_bn(outer_conv_output)
-        output              = sec_relu_output + outer_bn_output
-
-        return output
+        return sec_relu_output

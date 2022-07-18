@@ -88,6 +88,7 @@ class TestModel(unittest.TestCase):
         crit = t.nn.BCELoss()
         trainer = Trainer(self.model, crit, cuda=False)
         trainer.save_onnx('checkpoint_test.onnx')
+        print("gg")
 
     def test_prediction(self):
         pred = self.model(t.rand((50, 3, 300, 300)))
