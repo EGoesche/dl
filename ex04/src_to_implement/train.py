@@ -18,7 +18,7 @@ for root, _, files in os.walk('.'):
     for name in files:
         if name == 'data.csv':
             csv_path = os.path.join(root, name)
-data = pd.read_csv(csv_path, sep=';')
+data = pd.read_csv(csv_path, sep=';') # [0:10] Uncomment this if you want to test something quickly. Otherwise it will take long time.
 train, test = train_test_split(data, test_size=0.2, random_state=42)
 
 
@@ -37,7 +37,7 @@ optim = t.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 trainer = Trainer(model, crit, optim=optim, train_dl=train_dl, val_test_dl=val_dl, cuda=False, early_stopping_patience=3)
 
 # go, go, go... call fit on trainer
-res = trainer.fit(1)
+res = trainer.fit(5)
 
 # plot the results
 plt.plot(np.arange(len(res[0])), res[0], label='train loss')

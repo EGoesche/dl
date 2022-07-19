@@ -163,10 +163,11 @@ class Trainer:
             valid_losses.append(self.val_test())
 
             # Save the model. You may want to do that every X epochs rather than after every epoch
-            self.save_checkpoint(epochs)
+            self.save_checkpoint(epoch_counter)
 
             # Update patience counter according to the latest validation loss
-            if valid_losses[-1] >= self.min_valid_loss:
+            # If last valid_loss is not the min, it implies loss has not decreased
+            if valid_losses[-1] > self.min_valid_loss:
                 patience_counter += 1
             else:
                 patience_counter = 0
@@ -175,6 +176,7 @@ class Trainer:
             if self._early_stopping_patience == patience_counter or epoch_counter == epochs:
                 break
             epoch_counter += 1
+        print("Last epoch tried: " + str(epoch_counter))
         return train_losses, valid_losses
                     
         
