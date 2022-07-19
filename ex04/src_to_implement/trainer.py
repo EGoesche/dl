@@ -159,8 +159,8 @@ class Trainer:
             # use the save_checkpoint function to save the model (can be restricted to epochs with improvement)
             # check whether early stopping should be performed using the early stopping criterion and stop if so
             # return the losses for both training and validation
-            train_losses += self.train_epoch()
-            valid_losses += self.val_test()
+            train_losses.append(self.train_epoch())
+            valid_losses.append(self.val_test())
 
             # Save the model. You may want to do that every X epochs rather than after every epoch
             self.save_checkpoint(epochs)
