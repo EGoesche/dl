@@ -65,6 +65,7 @@ class Trainer:
 
         # forward + backward + optimize
         output = self._model(x)
+        y = y.float()
         loss = self._crit(output, y)
         loss.backward()
         self._optim.step()
@@ -81,6 +82,7 @@ class Trainer:
 
         self._model.eval()
         output = self._model(x)
+        y = y.float()
         loss = self._crit(output, y)
         return loss
         
