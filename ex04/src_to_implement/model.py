@@ -1,5 +1,5 @@
-import torch
 import torch.nn as nn
+
 
 class ResNet(nn.Module):
     def __init__(self):
@@ -7,7 +7,7 @@ class ResNet(nn.Module):
         self.training = True
 
         self.layer0 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=7, stride=2),  #3 = input channels  64 = output channels
+            nn.Conv2d(3, 64, kernel_size=7, stride=2),  # 3 = input channels  64 = output channels
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2)
@@ -26,12 +26,12 @@ class ResNet(nn.Module):
         self.flatten = nn.Flatten()
 
     def forward(self, input):
-        layer0_output   = self.layer0(input)
-        layer1_output   = self.layer1(layer0_output)
-        gap_output      = self.gap(layer1_output)
-        fl_output       = self.flatten(gap_output)
-        fc_output       = self.fc(fl_output)
-        output          = self.sigmoid(fc_output)
+        layer0_output = self.layer0(input)
+        layer1_output = self.layer1(layer0_output)
+        gap_output = self.gap(layer1_output)
+        fl_output = self.flatten(gap_output)
+        fc_output = self.fc(fl_output)
+        output = self.sigmoid(fc_output)
 
         return output
 
@@ -51,13 +51,13 @@ class ResBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, input):
-        shortcut            = self.shortcut(input)
-        first_conv_output   = self.conv1(input)
-        first_bn_output     = self.bn1(first_conv_output)
-        first_relu_output   = nn.ReLU()(first_bn_output)
-        sec_conv_output     = self.conv2(first_relu_output)
-        sec_bn_output       = self.bn2(sec_conv_output)
-        sec_bn_output       += shortcut   # Skip connection is added to the output of batch norm 2
-        sec_relu_output     = nn.ReLU()(sec_bn_output)
+        shortcut = self.shortcut(input)
+        first_conv_output = self.conv1(input)
+        first_bn_output = self.bn1(first_conv_output)
+        first_relu_output = nn.ReLU()(first_bn_output)
+        sec_conv_output = self.conv2(first_relu_output)
+        sec_bn_output = self.bn2(sec_conv_output)
+        sec_bn_output += shortcut  # Skip connection is added to the output of batch norm 2
+        sec_relu_output = nn.ReLU()(sec_bn_output)
 
         return sec_relu_output
