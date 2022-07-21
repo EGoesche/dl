@@ -19,7 +19,7 @@ class ChallengeDataset(Dataset):
         self.labels = data[['crack', 'inactive']].values
 
         # Depending on the mode, we do data augmentation
-        if self.mode is "train":
+        if self.mode == "train":
             self._transform = tv.transforms.Compose([
                 tv.transforms.ToPILImage(),
                 tv.transforms.RandomVerticalFlip(),
