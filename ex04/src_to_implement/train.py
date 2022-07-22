@@ -1,43 +1,41 @@
 import torch as t
-from data import ChallengeDataset
-from trainer import Trainer
-from matplotlib import pyplot as plt
 import numpy as np
-import model
 import pandas as pd
+from data import ChallengeDataset
 from sklearn.model_selection import train_test_split
-import os
+from matplotlib import pyplot as plt
 from trainer import Trainer
 from model import ResNet
+from pathlib import Path
 
 
-# load the data from the csv file and perform a train-test-split
-# this can be accomplished using the already imported pandas and sklearn.model_selection modules
-csv_path = ''
-for root, _, files in os.walk('.'):
-    for name in files:
-        if name == 'data.csv':
-            csv_path = os.path.join(root, name)
-data = pd.read_csv(csv_path, sep=';') # [0:10] Uncomment this if you want to test something quickly. Otherwise it will take long time.
-train, test = train_test_split(data, test_size=0.2, random_state=42)
+# Load the data from the csv file and perform a train-test-split
+PATH_DATA_CSV = Path(__file__).parent.absolute() / 'data.csv'
+dataset = pd.read_csv(PATH_DATA_CSV, sep=";")
+train, test = train_test_split(dataset, test_size=0.2, random_state=42)
 
+# Set up data loading for the training and validation dataset
+train_dataset = t.utils.data.DataLoader(ChallengeDataset(train, 'train'), batch_size=1, shuffle=True)
+val_dataset = t.utils.data.DataLoader(ChallengeDataset(test, 'val'), batch_size=1, shuffle=True)
 
-# set up data loading for the training and validation set each using t.utils.data.DataLoader and ChallengeDataset objects
-val_dl   = t.utils.data.DataLoader(ChallengeDataset(train, 'val'), batch_size=1)
-train_dl = t.utils.data.DataLoader(ChallengeDataset(train, 'train'), batch_size=1)
-
-# create an instance of our ResNet model
+# Create an instance of our ResNet model
 model = ResNet()
 
-# set up a suitable loss criterion (you can find a pre-implemented loss functions in t.nn)
-# set up the optimizer (see t.optim)
-# create an object of type Trainer and set its early stopping criterion
+# Set up a suitable loss criterion (you can find a pre-implemented loss functions in t.nn)
+# Set up the optimizer (see t.optim)
+# Create an object of type Trainer and set its early stopping criterion
 crit = t.nn.BCELoss()
-optim = t.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-trainer = Trainer(model, crit, optim=optim, train_dl=train_dl, val_test_dl=val_dl, cuda=False, early_stopping_patience=3)
+optim = t.optim.Adam(model.parameters(), lr=0.001)
+trainer = Trainer(model,
+                  crit,
+                  optim=optim,
+                  train_dl=train_dataset,
+                  val_test_dl=val_dataset,
+                  cuda=True,
+                  early_stopping_patience=6)
 
 # go, go, go... call fit on trainer
-res = trainer.fit(5)
+res = trainer.fit(100)
 
 # plot the results
 plt.plot(np.arange(len(res[0])), res[0], label='train loss')
