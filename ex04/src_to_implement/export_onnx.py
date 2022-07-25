@@ -4,7 +4,7 @@ import sys
 import torchvision as tv
 from model import ResNet
 
-epoch = 8
+epoch = 21
 model = ResNet()
 
 crit = t.nn.BCELoss()

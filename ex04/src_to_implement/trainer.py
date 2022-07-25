@@ -24,7 +24,7 @@ class Trainer:
 
         if cuda:
             self._model = model.cuda()
-            self._crit = crit.cuda()
+            # self._crit = crit.cuda()
 
     def save_checkpoint(self, epoch):
         t.save({'state_dict': self._model.state_dict()}, 'checkpoints/checkpoint_{:03d}.ckp'.format(epoch))
